@@ -1,0 +1,899 @@
+﻿{
+    "generatedAt":  "2026-10-13T20:02:50.9257846Z",
+    "rates":  {
+                  "base":  "USD",
+                  "updated":  "Mon, 12 Oct 2026 23:57:31 +0000",
+                  "EUR":  0.895156,
+                  "GBP":  0.756615,
+                  "JPY":  158.544079,
+                  "CHF":  0.834009,
+                  "AUD":  1.436501,
+                  "CAD":  1.427373
+              },
+    "verse":  {
+                  "ref":  "1 Peter 2:24",
+                  "text":  "He himself bore our sins in his body on the tree, that we may cease from sinning and live for righteousness. By his wounds you were healed."
+              },
+    "events":  [
+                   {
+                       "title":  "Bank Holiday",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-11T19:00:00-04:00",
+                       "impact":  "Holiday",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Breeden Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-12T05:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Bank Holiday",
+                       "ccy":  "USD",
+                       "time":  "2026-10-12T07:00:00-04:00",
+                       "impact":  "Holiday",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Bank Holiday",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-12T08:00:00-04:00",
+                       "impact":  "Holiday",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Mann Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-12T08:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-12T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "FOMC Member Hammack Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-12T12:10:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BRC Retail Sales Monitor y/y",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-12T19:01:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.8%",
+                       "previous":  "0.5%"
+                   },
+                   {
+                       "title":  "PPI y/y",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-12T19:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "7.6%",
+                       "previous":  "7.6%"
+                   },
+                   {
+                       "title":  "Bank Lending y/y",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-12T19:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "5.5%",
+                       "previous":  "5.4%"
+                   },
+                   {
+                       "title":  "NAB Business Confidence",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-12T20:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "-8"
+                   },
+                   {
+                       "title":  "Monetary Policy Meeting Minutes",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-12T20:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Greene Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-12T23:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "German Final CPI m/m",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-13T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.6%",
+                       "previous":  "0.6%"
+                   },
+                   {
+                       "title":  "FOMC Member Waller Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T03:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "NFIB Small Business Index",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T06:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "98.1",
+                       "previous":  "98.7"
+                   },
+                   {
+                       "title":  "ADP Weekly Employment Change",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T08:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "23.8K"
+                   },
+                   {
+                       "title":  "Existing Home Sales",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T10:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "3.95M",
+                       "previous":  "3.98M"
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-13T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "CB Leading Index m/m",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-13T10:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "0.5%"
+                   },
+                   {
+                       "title":  "FOMC Member Barkin Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T13:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "FOMC Member Collins Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T16:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Visitor Arrivals m/m",
+                       "ccy":  "NZD",
+                       "time":  "2026-10-13T17:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "0.5%"
+                   },
+                   {
+                       "title":  "MI Leading Index m/m",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-13T19:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "0.0%"
+                   },
+                   {
+                       "title":  "M2 Money Stock y/y",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-13T19:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "2.1%",
+                       "previous":  "2.0%"
+                   },
+                   {
+                       "title":  "PPI y/y",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-13T21:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "4.4%",
+                       "previous":  "3.8%"
+                   },
+                   {
+                       "title":  "CPI y/y",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-13T21:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "1.0%",
+                       "previous":  "0.8%"
+                   },
+                   {
+                       "title":  "Trade Balance",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-13T22:03:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "790B",
+                       "previous":  "809B"
+                   },
+                   {
+                       "title":  "USD-Denominated Trade Balance",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-13T22:04:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "116.8B",
+                       "previous":  "119.1B"
+                   },
+                   {
+                       "title":  "ECB President Lagarde Speaks",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-13T22:10:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Breeden Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-13T23:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BOE Gov Bailey Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-14T01:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Pill Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-14T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "German WPI m/m",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-14T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.6%",
+                       "previous":  "0.9%"
+                   },
+                   {
+                       "title":  "BOC Gov Macklem Speaks",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-14T02:05:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "New Loans",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-14T04:03:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "1025B",
+                       "previous":  "60B"
+                   },
+                   {
+                       "title":  "M2 Money Supply y/y",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-14T04:03:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "7.4%",
+                       "previous":  "7.5%"
+                   },
+                   {
+                       "title":  "ECB President Lagarde Speaks",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-14T04:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "German 30-y Bond Auction",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-14T05:34:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "3.80|1.6"
+                   },
+                   {
+                       "title":  "FOMC Member Bowman Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T05:40:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "EU Economic Summit",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-14T06:15:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "CPI m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.6%",
+                       "previous":  "0.4%"
+                   },
+                   {
+                       "title":  "CPI y/y",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "3.6%",
+                       "previous":  "3.4%"
+                   },
+                   {
+                       "title":  "Core CPI y/y",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "2.5%",
+                       "previous":  "2.4%"
+                   },
+                   {
+                       "title":  "Building Permits m/m",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "2.9%",
+                       "previous":  "-17.3%"
+                   },
+                   {
+                       "title":  "Core CPI m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.2%",
+                       "previous":  "0.3%"
+                   },
+                   {
+                       "title":  "CB Leading Index m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-14T09:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "-0.1%"
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-14T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "FOMC Member Barkin Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T13:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Beige Book",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T14:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "API Weekly Statistical Bulletin",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T16:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Core Machinery Orders m/m",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-14T19:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "2.2%",
+                       "previous":  "-3.7%"
+                   },
+                   {
+                       "title":  "Unemployment Rate",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-14T20:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "4.6%",
+                       "previous":  "4.6%"
+                   },
+                   {
+                       "title":  "Employment Change",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-14T20:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "19.6K",
+                       "previous":  "39.5K"
+                   },
+                   {
+                       "title":  "FOMC Member Bowman Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T22:55:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Pill Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-14T23:35:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "RBA Annual Report",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-15T00:25:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Revised Industrial Production m/m",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-15T00:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-1.7%",
+                       "previous":  "-1.7%"
+                   },
+                   {
+                       "title":  "SNB Chairman Schlegel Speaks",
+                       "ccy":  "CHF",
+                       "time":  "2026-10-15T00:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Index of Services 3m/3m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.8%",
+                       "previous":  "0.6%"
+                   },
+                   {
+                       "title":  "Industrial Production m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-0.1%",
+                       "previous":  "0.2%"
+                   },
+                   {
+                       "title":  "Manufacturing Production m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-0.1%",
+                       "previous":  "0.9%"
+                   },
+                   {
+                       "title":  "GDP m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "-0.1%",
+                       "previous":  "0.4%"
+                   },
+                   {
+                       "title":  "Construction Output m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.0%",
+                       "previous":  "0.1%"
+                   },
+                   {
+                       "title":  "Goods Trade Balance",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-21.9B",
+                       "previous":  "-21.0B"
+                   },
+                   {
+                       "title":  "PPI m/m",
+                       "ccy":  "CHF",
+                       "time":  "2026-10-15T02:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.6%",
+                       "previous":  "0.7%"
+                   },
+                   {
+                       "title":  "MPC Member Greene Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "French Final CPI m/m",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-15T02:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-0.3%",
+                       "previous":  "-0.3%"
+                   },
+                   {
+                       "title":  "BOE Gov Bailey Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T03:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Breeden Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T04:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Industrial Production m/m",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-15T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.0%",
+                       "previous":  "-0.1%"
+                   },
+                   {
+                       "title":  "Gov Council Member Rogers Speaks",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-15T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "EU Economic Summit",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-15T06:15:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Philly Fed Manufacturing Index",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "28.2",
+                       "previous":  "37.8"
+                   },
+                   {
+                       "title":  "Retail Sales m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.3%",
+                       "previous":  "1.2%"
+                   },
+                   {
+                       "title":  "Empire State Manufacturing Index",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "12.1",
+                       "previous":  "7.6"
+                   },
+                   {
+                       "title":  "Unemployment Claims",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "199K",
+                       "previous":  "197K"
+                   },
+                   {
+                       "title":  "PPI m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.6%",
+                       "previous":  "0.4%"
+                   },
+                   {
+                       "title":  "Wholesale Sales m/m",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-1.5%",
+                       "previous":  "0.3%"
+                   },
+                   {
+                       "title":  "Manufacturing Sales m/m",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "1.1%",
+                       "previous":  "-0.4%"
+                   },
+                   {
+                       "title":  "Core Retail Sales m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.6%",
+                       "previous":  "1.4%"
+                   },
+                   {
+                       "title":  "Core PPI m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.3%",
+                       "previous":  "0.2%"
+                   },
+                   {
+                       "title":  "Business Inventories m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T10:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.4%",
+                       "previous":  "0.8%"
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-15T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Natural Gas Storage",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T10:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "85B"
+                   },
+                   {
+                       "title":  "Crude Oil Inventories",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T12:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "-3.2M"
+                   },
+                   {
+                       "title":  "FOMC Member Hammack Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T16:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BusinessNZ Manufacturing Index",
+                       "ccy":  "NZD",
+                       "time":  "2026-10-15T17:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "53.1"
+                   },
+                   {
+                       "title":  "FPI m/m",
+                       "ccy":  "NZD",
+                       "time":  "2026-10-15T17:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "0.3%"
+                   },
+                   {
+                       "title":  "BOE Gov Bailey Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T22:00:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "German Buba President Nagel Speaks",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-15T22:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Fed Chairman Warsh Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T23:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BOC Gov Macklem Speaks",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-16T00:15:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Trade Balance",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-16T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "4.5B",
+                       "previous":  "5.0B"
+                   },
+                   {
+                       "title":  "Final CPI y/y",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-16T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "3.8%",
+                       "previous":  "3.8%"
+                   },
+                   {
+                       "title":  "Final Core CPI y/y",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-16T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "2.5%",
+                       "previous":  "2.5%"
+                   },
+                   {
+                       "title":  "Italian Trade Balance",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-16T06:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "7.50B",
+                       "previous":  "8.24B"
+                   },
+                   {
+                       "title":  "Gov Council Member Alexopoulos Speaks",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-16T08:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Housing Starts",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-16T08:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "234K",
+                       "previous":  "229K"
+                   },
+                   {
+                       "title":  "Import Prices m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.9%",
+                       "previous":  "0.7%"
+                   },
+                   {
+                       "title":  "Foreign Securities Purchases",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-16T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "20.65B"
+                   },
+                   {
+                       "title":  "Industrial Production m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T09:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.4%",
+                       "previous":  "0.0%"
+                   },
+                   {
+                       "title":  "Capacity Utilization Rate",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T09:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "76.5%",
+                       "previous":  "76.3%"
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-16T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Federal Budget Balance",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T14:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-34.7B",
+                       "previous":  "-166.8B"
+                   },
+                   {
+                       "title":  "TIC Long-Term Purchases",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T16:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "75.2B",
+                       "previous":  "-27.9B"
+                   },
+                   {
+                       "title":  "German Buba President Nagel Speaks",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-17T00:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BOE Gov Bailey Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-17T02:45:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-17T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "RBA Assist Gov Kent Speaks",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-17T20:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   }
+               ]
+}

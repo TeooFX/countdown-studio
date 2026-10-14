@@ -1,0 +1,1112 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Countdown-inspired widgets â€” live data</title>
+<style>
+  :root{
+    --small:158px; --med-h:158px; --large-h:352px;
+    --gap:18px; --pad:24px; --radius:26px;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,sans-serif;
+    --serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    --k:rgba(255,255,255,.40); --muted:rgba(255,255,255,.52); --down:rgba(255,255,255,.30);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; }
+  body{ min-height:100vh; color:#fff; font-family:var(--font); background:#050506;
+    background-image:radial-gradient(900px 600px at 12% -12%, #0d0f18 0, transparent 60%), radial-gradient(800px 600px at 110% 8%, #120d1a 0, transparent 55%);
+    padding:26px 16px 80px; }
+  .head{ text-align:center; max-width:640px; margin:0 auto 18px; }
+  .head h1{ font-size:20px; font-weight:400; letter-spacing:-.01em; margin:0 0 8px; }
+  .head p{ margin:0; color:var(--muted); font-size:12.5px; line-height:1.6; }
+  .head em{ color:rgba(255,255,255,.75); font-style:normal; }
+  .chips{ display:flex; gap:14px; justify-content:center; margin:14px 0 0; }
+  .chips span{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--k); }
+  .chips b{ color:rgba(255,255,255,.8); font-weight:500; }
+
+  .bar{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; max-width:800px; margin:22px auto 28px; }
+  .bar button{ appearance:none; cursor:pointer; font:inherit; font-size:12px; font-weight:400; color:var(--muted); background:transparent; border:1px solid rgba(255,255,255,.12); padding:7px 15px; border-radius:30px; transition:.16s; }
+  .bar button:hover{ color:#fff; border-color:rgba(255,255,255,.3); }
+  .bar button[aria-pressed="true"]{ color:#0a0a0c; background:#fff; border-color:#fff; }
+
+  .wrap{ display:flex; justify-content:center; }
+  .stage{ position:relative; width:390px; border-radius:54px; padding:11px; background:linear-gradient(160deg,#232329,#0c0c10); box-shadow:0 40px 90px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.05); }
+  .screen{ position:relative; border-radius:44px; overflow:hidden; }
+  .wallpaper{ position:absolute; inset:0; }
+  .wallpaper[data-wp="midnight"]{ background:radial-gradient(120% 80% at 78% 6%, rgba(255,120,90,.26), transparent 46%),radial-gradient(100% 70% at 12% 28%, rgba(80,110,255,.30), transparent 52%),radial-gradient(120% 90% at 62% 102%, rgba(20,170,140,.22), transparent 55%),linear-gradient(165deg,#0f1524,#090b14 46%,#050508); }
+  .wallpaper[data-wp="dusk"]{ background:radial-gradient(120% 80% at 80% 10%, rgba(255,150,70,.5), transparent 48%),radial-gradient(110% 90% at 10% 90%, rgba(140,60,200,.5), transparent 52%),linear-gradient(170deg,#221334,#0c0717 55%,#060409); }
+  .wallpaper[data-wp="forest"]{ background:radial-gradient(120% 80% at 25% 15%, rgba(60,200,140,.26), transparent 50%),radial-gradient(120% 90% at 90% 90%, rgba(20,120,90,.4), transparent 55%),linear-gradient(165deg,#0a1b16,#06110e 55%,#040807); }
+  .wallpaper[data-wp="graphite"]{ background:radial-gradient(120% 90% at 70% 5%, rgba(255,255,255,.12), transparent 45%),linear-gradient(165deg,#191920,#0d0d11 55%,#07070a); }
+  .wallpaper::before{ content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.4)); }
+
+  .statusbar{ position:relative; z-index:5; display:flex; justify-content:space-between; align-items:center; padding:16px 30px 4px; font-size:14px; font-weight:500; }
+  .island{ position:absolute; top:11px; left:50%; transform:translateX(-50%); width:120px; height:34px; border-radius:20px; background:#000; z-index:6; }
+  .statusbar .right{ display:flex; align-items:center; gap:6px; }
+  .bars{ display:flex; align-items:flex-end; gap:2px; height:11px; } .bars i{ width:3px; background:#fff; border-radius:1px; }
+  .bars i:nth-child(1){height:4px} .bars i:nth-child(2){height:6px} .bars i:nth-child(3){height:8px} .bars i:nth-child(4){height:11px}
+  .batt{ width:24px; height:12px; border:1.5px solid rgba(255,255,255,.5); border-radius:3px; position:relative; }
+  .batt::after{ content:""; position:absolute; right:-3px; top:3px; width:2px; height:4px; background:rgba(255,255,255,.5); border-radius:0 1px 1px 0; }
+  .batt i{ position:absolute; inset:1.5px; width:70%; background:#fff; border-radius:1.5px; }
+
+  .grid{ position:relative; z-index:4; padding:12px var(--pad) 32px; display:grid; grid-template-columns:repeat(2,1fr); gap:var(--gap); }
+
+  .widget{ position:relative; color:#fff; padding:19px 20px; border-radius:var(--radius); font-family:var(--font); transition:.25s; }
+  .w-small{ aspect-ratio:1/1; display:flex; flex-direction:column; justify-content:center; }
+  .w-med{ grid-column:span 2; height:var(--med-h); display:flex; flex-direction:column; justify-content:center; }
+  .w-large{ grid-column:span 2; height:var(--large-h); display:flex; flex-direction:column; }
+
+  .lbl{ display:flex; align-items:center; gap:6px; font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:var(--k); font-weight:500; }
+  .lbl .r{ margin-left:auto; letter-spacing:.1em; color:var(--down); }
+  .big{ font-size:46px; font-weight:200; letter-spacing:-.035em; line-height:.95; font-variant-numeric:tabular-nums; }
+  .mid{ font-size:18px; font-weight:300; letter-spacing:-.01em; }
+  .meta{ font-size:11px; color:var(--muted); font-weight:400; }
+  .sub{ font-size:11.5px; color:var(--muted); }
+  .v{ font-variant-numeric:tabular-nums; }
+  .dot{ display:inline-block; width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,.22); margin-right:8px; vertical-align:middle; }
+  .dot.on{ background:rgba(255,255,255,.9); }
+
+  /* market rows */
+  .mlist{ width:100%; margin-top:14px; }
+  .mrow{ display:grid; grid-template-columns:1fr auto 40px; align-items:baseline; gap:14px; padding:11px 0; border-top:1px solid rgba(255,255,255,.07); }
+  .mrow:first-child{ border-top:0; }
+  .mrow .nm{ font-size:12.5px; font-weight:400; color:rgba(255,255,255,.92); }
+  .mrow .nm.off{ color:var(--down); }
+  .mrow .cd2{ font-size:12.5px; color:#fff; }
+  .mrow .lt{ font-size:11px; color:var(--muted); text-align:right; }
+
+  .hero{ margin-top:14px; }
+  .hero .cd-big{ margin-top:8px; }
+
+  /* news */
+  .nlist{ width:100%; margin-top:14px; }
+  .nrow{ display:grid; grid-template-columns:1fr auto; align-items:baseline; gap:12px; padding:10px 0; border-top:1px solid rgba(255,255,255,.07); }
+  .nrow:first-child{ border-top:0; }
+  .nrow .ti{ font-size:12.5px; font-weight:400; color:rgba(255,255,255,.92); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nrow .ti .cc{ color:var(--k); font-size:10px; letter-spacing:.1em; margin-right:7px; }
+  .nrow .rt{ text-align:right; }
+  .nrow .rt b{ display:block; font-weight:400; font-size:12px; color:#fff; font-variant-numeric:tabular-nums; }
+  .nrow .rt s{ display:block; text-decoration:none; font-size:10px; color:var(--down); margin-top:2px; font-variant-numeric:tabular-nums; }
+  .hero2 .mid{ margin-top:10px; line-height:1.25; }
+
+  /* concepts */
+  .stage[data-concept="pure"] .widget{ text-shadow:0 1px 12px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.6); }
+  .stage[data-concept="scrim"] .widget{ background:linear-gradient(180deg,rgba(0,0,0,.34),rgba(0,0,0,.10)); border-radius:24px; }
+  .stage[data-concept="frost"] .widget{ background:rgba(14,15,22,.16); border-radius:24px; -webkit-backdrop-filter:blur(30px) saturate(150%); backdrop-filter:blur(30px) saturate(150%); }
+  .stage[data-concept="line"] .widget{ text-shadow:0 1px 12px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.6); }
+  .stage[data-concept="line"] .widget::before{ content:""; position:absolute; top:15px; left:20px; right:20px; height:1px; background:rgba(255,255,255,.22); }
+
+  body.snap{ padding:10px; }
+  body.snap .head,body.snap .bar{ display:none; }
+  .legend{ text-align:center; color:var(--down); font-size:11.5px; margin-top:26px; line-height:1.8; max-width:600px; margin-left:auto; margin-right:auto; }
+  .legend b{ color:var(--muted); font-weight:500; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <h1>Countdown-first widgets</h1>
+    <p>Inspired by <em>Market Countdown</em> (Black Tower Investments): every market shows a live countdown and its <em>local</em> time; news shows a countdown to the event. Sessions secured to fixed UTC hours; local times are real via time zones.</p>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="bar" id="cb"></div>
+  <div class="bar" id="wpbar"></div>
+
+  <div class="wrap">
+    <div class="stage" id="stage" data-concept="pure">
+      <div class="island"></div>
+      <div class="screen">
+        <div class="wallpaper" id="wall" data-wp="midnight"></div>
+        <div class="statusbar"><span class="sb-time">9:41</span><span class="right"><span class="bars"><i></i><i></i><i></i><i></i></span><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 10.5l1.6-1.9a2.4 2.4 0 0 0-3.2 0L8 10.5z" fill="#fff"/><path d="M4.6 6.6a5.4 5.4 0 0 1 6.8 0" stroke="#fff" stroke-width="1.3"/><path d="M2 4a9 9 0 0 1 12 0" stroke="#fff" stroke-width="1.3"/></svg><span class="batt"><i></i></span></span></div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+  </div>
+  <div class="legend"><b>Pure</b> Â· <b>Scrim</b> Â· <b>Frost</b> Â· <b>Line</b> â€” same quiet treatment as before, now countdown-first like Market Countdown. Fixed UTC session hours: Sydney 21â€“06 Â· Tokyo 00â€“09 Â· London 07â€“16 Â· New York 12â€“21 Â· NYSE 13:30â€“20.</div>
+
+<script>
+const SNAPSHOT = {
+    "generatedAt":  "2026-10-13T20:02:50.9257846Z",
+    "rates":  {
+                  "base":  "USD",
+                  "updated":  "Mon, 12 Oct 2026 23:57:31 +0000",
+                  "EUR":  0.895156,
+                  "GBP":  0.756615,
+                  "JPY":  158.544079,
+                  "CHF":  0.834009,
+                  "AUD":  1.436501,
+                  "CAD":  1.427373
+              },
+    "verse":  {
+                  "ref":  "1 Peter 2:24",
+                  "text":  "He himself bore our sins in his body on the tree, that we may cease from sinning and live for righteousness. By his wounds you were healed."
+              },
+    "events":  [
+                   {
+                       "title":  "Bank Holiday",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-11T19:00:00-04:00",
+                       "impact":  "Holiday",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Breeden Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-12T05:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Bank Holiday",
+                       "ccy":  "USD",
+                       "time":  "2026-10-12T07:00:00-04:00",
+                       "impact":  "Holiday",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Bank Holiday",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-12T08:00:00-04:00",
+                       "impact":  "Holiday",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Mann Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-12T08:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-12T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "FOMC Member Hammack Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-12T12:10:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BRC Retail Sales Monitor y/y",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-12T19:01:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.8%",
+                       "previous":  "0.5%"
+                   },
+                   {
+                       "title":  "PPI y/y",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-12T19:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "7.6%",
+                       "previous":  "7.6%"
+                   },
+                   {
+                       "title":  "Bank Lending y/y",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-12T19:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "5.5%",
+                       "previous":  "5.4%"
+                   },
+                   {
+                       "title":  "NAB Business Confidence",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-12T20:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "-8"
+                   },
+                   {
+                       "title":  "Monetary Policy Meeting Minutes",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-12T20:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Greene Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-12T23:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "German Final CPI m/m",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-13T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.6%",
+                       "previous":  "0.6%"
+                   },
+                   {
+                       "title":  "FOMC Member Waller Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T03:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "NFIB Small Business Index",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T06:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "98.1",
+                       "previous":  "98.7"
+                   },
+                   {
+                       "title":  "ADP Weekly Employment Change",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T08:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "23.8K"
+                   },
+                   {
+                       "title":  "Existing Home Sales",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T10:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "3.95M",
+                       "previous":  "3.98M"
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-13T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "CB Leading Index m/m",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-13T10:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "0.5%"
+                   },
+                   {
+                       "title":  "FOMC Member Barkin Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T13:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "FOMC Member Collins Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T16:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Visitor Arrivals m/m",
+                       "ccy":  "NZD",
+                       "time":  "2026-10-13T17:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "0.5%"
+                   },
+                   {
+                       "title":  "MI Leading Index m/m",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-13T19:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "0.0%"
+                   },
+                   {
+                       "title":  "M2 Money Stock y/y",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-13T19:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "2.1%",
+                       "previous":  "2.0%"
+                   },
+                   {
+                       "title":  "PPI y/y",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-13T21:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "4.4%",
+                       "previous":  "3.8%"
+                   },
+                   {
+                       "title":  "CPI y/y",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-13T21:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "1.0%",
+                       "previous":  "0.8%"
+                   },
+                   {
+                       "title":  "Trade Balance",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-13T22:03:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "790B",
+                       "previous":  "809B"
+                   },
+                   {
+                       "title":  "USD-Denominated Trade Balance",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-13T22:04:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "116.8B",
+                       "previous":  "119.1B"
+                   },
+                   {
+                       "title":  "ECB President Lagarde Speaks",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-13T22:10:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Breeden Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-13T23:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BOE Gov Bailey Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-14T01:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Pill Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-14T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "German WPI m/m",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-14T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.6%",
+                       "previous":  "0.9%"
+                   },
+                   {
+                       "title":  "BOC Gov Macklem Speaks",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-14T02:05:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "New Loans",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-14T04:03:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "1025B",
+                       "previous":  "60B"
+                   },
+                   {
+                       "title":  "M2 Money Supply y/y",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-14T04:03:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "7.4%",
+                       "previous":  "7.5%"
+                   },
+                   {
+                       "title":  "ECB President Lagarde Speaks",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-14T04:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "German 30-y Bond Auction",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-14T05:34:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "3.80|1.6"
+                   },
+                   {
+                       "title":  "FOMC Member Bowman Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T05:40:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "EU Economic Summit",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-14T06:15:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "CPI m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.6%",
+                       "previous":  "0.4%"
+                   },
+                   {
+                       "title":  "CPI y/y",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "3.6%",
+                       "previous":  "3.4%"
+                   },
+                   {
+                       "title":  "Core CPI y/y",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "2.5%",
+                       "previous":  "2.4%"
+                   },
+                   {
+                       "title":  "Building Permits m/m",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "2.9%",
+                       "previous":  "-17.3%"
+                   },
+                   {
+                       "title":  "Core CPI m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.2%",
+                       "previous":  "0.3%"
+                   },
+                   {
+                       "title":  "CB Leading Index m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-14T09:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "-0.1%"
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-14T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "FOMC Member Barkin Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T13:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Beige Book",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T14:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "API Weekly Statistical Bulletin",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T16:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Core Machinery Orders m/m",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-14T19:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "2.2%",
+                       "previous":  "-3.7%"
+                   },
+                   {
+                       "title":  "Unemployment Rate",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-14T20:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "4.6%",
+                       "previous":  "4.6%"
+                   },
+                   {
+                       "title":  "Employment Change",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-14T20:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "19.6K",
+                       "previous":  "39.5K"
+                   },
+                   {
+                       "title":  "FOMC Member Bowman Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T22:55:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Pill Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-14T23:35:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "RBA Annual Report",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-15T00:25:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Revised Industrial Production m/m",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-15T00:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-1.7%",
+                       "previous":  "-1.7%"
+                   },
+                   {
+                       "title":  "SNB Chairman Schlegel Speaks",
+                       "ccy":  "CHF",
+                       "time":  "2026-10-15T00:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Index of Services 3m/3m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.8%",
+                       "previous":  "0.6%"
+                   },
+                   {
+                       "title":  "Industrial Production m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-0.1%",
+                       "previous":  "0.2%"
+                   },
+                   {
+                       "title":  "Manufacturing Production m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-0.1%",
+                       "previous":  "0.9%"
+                   },
+                   {
+                       "title":  "GDP m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "-0.1%",
+                       "previous":  "0.4%"
+                   },
+                   {
+                       "title":  "Construction Output m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.0%",
+                       "previous":  "0.1%"
+                   },
+                   {
+                       "title":  "Goods Trade Balance",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-21.9B",
+                       "previous":  "-21.0B"
+                   },
+                   {
+                       "title":  "PPI m/m",
+                       "ccy":  "CHF",
+                       "time":  "2026-10-15T02:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.6%",
+                       "previous":  "0.7%"
+                   },
+                   {
+                       "title":  "MPC Member Greene Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "French Final CPI m/m",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-15T02:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-0.3%",
+                       "previous":  "-0.3%"
+                   },
+                   {
+                       "title":  "BOE Gov Bailey Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T03:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Breeden Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T04:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Industrial Production m/m",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-15T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.0%",
+                       "previous":  "-0.1%"
+                   },
+                   {
+                       "title":  "Gov Council Member Rogers Speaks",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-15T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "EU Economic Summit",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-15T06:15:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Philly Fed Manufacturing Index",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "28.2",
+                       "previous":  "37.8"
+                   },
+                   {
+                       "title":  "Retail Sales m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.3%",
+                       "previous":  "1.2%"
+                   },
+                   {
+                       "title":  "Empire State Manufacturing Index",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "12.1",
+                       "previous":  "7.6"
+                   },
+                   {
+                       "title":  "Unemployment Claims",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "199K",
+                       "previous":  "197K"
+                   },
+                   {
+                       "title":  "PPI m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.6%",
+                       "previous":  "0.4%"
+                   },
+                   {
+                       "title":  "Wholesale Sales m/m",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-1.5%",
+                       "previous":  "0.3%"
+                   },
+                   {
+                       "title":  "Manufacturing Sales m/m",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "1.1%",
+                       "previous":  "-0.4%"
+                   },
+                   {
+                       "title":  "Core Retail Sales m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.6%",
+                       "previous":  "1.4%"
+                   },
+                   {
+                       "title":  "Core PPI m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.3%",
+                       "previous":  "0.2%"
+                   },
+                   {
+                       "title":  "Business Inventories m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T10:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.4%",
+                       "previous":  "0.8%"
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-15T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Natural Gas Storage",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T10:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "85B"
+                   },
+                   {
+                       "title":  "Crude Oil Inventories",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T12:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "-3.2M"
+                   },
+                   {
+                       "title":  "FOMC Member Hammack Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T16:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BusinessNZ Manufacturing Index",
+                       "ccy":  "NZD",
+                       "time":  "2026-10-15T17:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "53.1"
+                   },
+                   {
+                       "title":  "FPI m/m",
+                       "ccy":  "NZD",
+                       "time":  "2026-10-15T17:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "0.3%"
+                   },
+                   {
+                       "title":  "BOE Gov Bailey Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T22:00:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "German Buba President Nagel Speaks",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-15T22:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Fed Chairman Warsh Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T23:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BOC Gov Macklem Speaks",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-16T00:15:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Trade Balance",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-16T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "4.5B",
+                       "previous":  "5.0B"
+                   },
+                   {
+                       "title":  "Final CPI y/y",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-16T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "3.8%",
+                       "previous":  "3.8%"
+                   },
+                   {
+                       "title":  "Final Core CPI y/y",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-16T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "2.5%",
+                       "previous":  "2.5%"
+                   },
+                   {
+                       "title":  "Italian Trade Balance",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-16T06:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "7.50B",
+                       "previous":  "8.24B"
+                   },
+                   {
+                       "title":  "Gov Council Member Alexopoulos Speaks",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-16T08:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Housing Starts",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-16T08:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "234K",
+                       "previous":  "229K"
+                   },
+                   {
+                       "title":  "Import Prices m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.9%",
+                       "previous":  "0.7%"
+                   },
+                   {
+                       "title":  "Foreign Securities Purchases",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-16T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "20.65B"
+                   },
+                   {
+                       "title":  "Industrial Production m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T09:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.4%",
+                       "previous":  "0.0%"
+                   },
+                   {
+                       "title":  "Capacity Utilization Rate",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T09:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "76.5%",
+                       "previous":  "76.3%"
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-16T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Federal Budget Balance",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T14:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-34.7B",
+                       "previous":  "-166.8B"
+                   },
+                   {
+                       "title":  "TIC Long-Term Purchases",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T16:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "75.2B",
+                       "previous":  "-27.9B"
+                   },
+                   {
+                       "title":  "German Buba President Nagel Speaks",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-17T00:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BOE Gov Bailey Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-17T02:45:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-17T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "RBA Assist Gov Kent Speaks",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-17T20:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   }
+               ]
+}
+;
+const WP=["midnight","dusk","forest","graphite"];
+const CONCEPTS=[["pure","Pure"],["scrim","Scrim"],["frost","Frost"],["line","Line"]];
+/* canonical session hours (UTC), aligned to Market Countdown's listing */
+const MARKETS=[
+  {name:"Sydney",   tz:"Australia/Sydney", open:21*60,      dur:9*60},
+  {name:"Tokyo",    tz:"Asia/Tokyo",       open:0,          dur:9*60},
+  {name:"London",   tz:"Europe/London",    open:7*60,       dur:9*60},
+  {name:"New York", tz:"America/New_York", open:12*60,      dur:9*60},
+  {name:"NYSE",     tz:"America/New_York", open:13*60+30,   dur:6*60+30},
+];
+const DATA={ rates:SNAPSHOT.rates, verse:SNAPSHOT.verse, events:SNAPSHOT.events||[], liveRates:false, liveVerse:false };
+
+async function getJSON(url,ms=8000){ const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);
+  try{ const r=await fetch(url,{signal:c.signal}); if(!r.ok) throw 0; return await r.json(); } finally{ clearTimeout(t);} }
+async function loadLive(){
+  try{ const r=await getJSON("https://open.er-api.com/v6/latest/USD");
+    if(r&&r.rates){ DATA.rates={EUR:r.rates.EUR,GBP:r.rates.GBP,JPY:r.rates.JPY,CHF:r.rates.CHF,AUD:r.rates.AUD,CAD:r.rates.CAD}; DATA.liveRates=true; } }catch(e){}
+  try{ const v=await getJSON("https://labs.bible.org/api/?passage=votd&type=json&format=json");
+    if(v&&v[0]){ DATA.verse={ref:`${v[0].bookname} ${v[0].chapter}:${v[0].verse}`, text:(v[0].text||"").replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim()}; DATA.liveVerse=true; } }catch(e){}
+  chips(); build();
+}
+function chips(){ document.getElementById("chips").innerHTML=
+  `<span>FX rates <b>${DATA.liveRates?'live':'snapshot'}</b></span><span>Verse <b>${DATA.liveVerse?'live':'snapshot'}</b></span><span>Calendar <b>this week</b></span>`; }
+
+/* ---- time ---- */
+const tzTime=tz=>{ try{ return new Intl.DateTimeFormat("en-GB",{timeZone:tz,hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date()); }catch(e){ return "--:--"; } };
+const fmtClock=sec=>{ sec=Math.max(0,Math.floor(sec)); return String(Math.floor(sec/3600)).padStart(2,"0")+":"+String(Math.floor(sec%3600/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0"); };
+const fmtDur=sec=>{ sec=Math.max(0,Math.floor(sec)); const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60; return h>0?`${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`:`${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`; };
+const fmtDurShort=sec=>{ sec=Math.max(0,Math.floor(sec)); const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60); if(h>0)return `in ${h}h ${String(m).padStart(2,"0")}m`; return `in ${m}m`; };
+const fmtT=iso=>{ const d=new Date(iso); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
+const dayK=iso=>new Date(iso).toLocaleDateString([], {weekday:"long",day:"numeric",month:"short"});
+const cc=c=>({USD:"US",EUR:"EU",GBP:"GB",JPY:"JP",AUD:"AU",CAD:"CA",CHF:"CH",NZD:"NZ",CNY:"CN",All:"â€”"}[c]||c);
+
+function markets(){ const d=new Date(),nm=d.getUTCHours()*60+d.getUTCMinutes(),s=d.getUTCSeconds();
+  return MARKETS.map(m=>{ const diff=(nm-m.open+1440)%1440; const open=diff<m.dur;
+    const evMin=open?(m.dur-diff):((m.open-nm+1440)%1440);
+    return {...m, open, label:open?"closes":"opens", count:evMin*60-s, local:tzTime(m.tz)}; }); }
+const nextMove=ms=>ms.slice().sort((a,b)=>a.count-b.count)[0];
+function upcoming(){ const now=Date.now(); return DATA.events.slice().sort((a,b)=>new Date(a.time)-new Date(b.time)).filter(e=>new Date(e.time).getTime()>now-12*60*1000); }
+
+/* ---- widgets ---- */
+function mrow(m){ return `<div class="mrow"><span class="nm ${m.open?'':'off'}"><span class="dot ${m.open?'on':''}"></span>${m.name}</span><span class="cd2 v">${fmtDur(m.count)}</span><span class="lt v">${m.local}</span></div>`; }
+const wSessSmall=()=>{ const ms=markets(), ev=nextMove(ms);
+  return `<div class="lbl">Next move</div><div class="meta" style="margin-top:14px">${ev.name} ${ev.label}</div><div class="big cd" style="margin-top:10px;font-size:42px">${fmtClock(ev.count)}</div><div class="sub v" style="margin-top:8px">${ev.local} local</div>`; };
+const wSessMed=()=>{ const ms=markets(), me=tzTime(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  return `<div class="lbl">Market sessions <span class="r">you ${me}</span></div><div class="mlist">${ms.map(mrow).join("")}</div>`; };
+const wSessLarge=()=>{ const ms=markets(), ev=nextMove(ms), me=tzTime(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  return `<div class="lbl">Next move <span class="r">you ${me}</span></div><div class="hero"><div class="meta" style="margin-top:12px">${ev.name} ${ev.label}</div><div class="big cd cd-big">${fmtClock(ev.count)}</div></div><div class="mlist">${ms.map(mrow).join("")}</div>`; };
+
+const wNewsSmall=()=>{ const u=upcoming(); const e=u.find(x=>x.impact==='High'||x.impact==='Medium')||u[0]||DATA.events[0]; const c=(new Date(e.time)-Date.now())/1000;
+  return `<div class="lbl">Next event</div><div class="meta" style="margin-top:14px">${cc(e.ccy)} Â· ${e.impact}</div><div class="mid" style="margin-top:8px;line-height:1.25">${e.title}</div><div class="big cd" style="margin-top:8px;font-size:30px">${fmtClock(c)}</div>`; };
+const wNewsMed=()=>{ const u=upcoming().filter(x=>x.impact==='High'||x.impact==='Medium').slice(0,3);
+  return `<div class="lbl">Forex news <span class="r">next up</span></div><div class="nlist">${u.map(nrow).join("")}</div>`; };
+const wNewsLarge=()=>{ const u=upcoming().slice(0,8); let last="";
+  return `<div class="lbl">Forex news calendar <span class="r">countdown Â· local time</span></div>`+u.map(e=>{const k=dayK(e.time);let h="";if(k!==last){h=`<div class="lbl" style="margin:12px 0 2px;color:var(--down)">${k}</div>`;last=k;}return h+nrow(e);}).join(""); };
+function nrow(e){ const c=(new Date(e.time)-Date.now())/1000;
+  return `<div class="nrow"><span class="ti"><span class="cc">${cc(e.ccy)}</span>${e.title}</span><span class="rt"><b>${fmtClock(c)}</b><s>${fmtT(e.time)} local</s></span></div>`; };
+
+const wVerseSmall=()=>`<div class="serif" style="font-family:var(--serif);font-size:15px;line-height:1.5">${(DATA.verse.text||"").length>80?DATA.verse.text.slice(0,80).replace(/\s+\S*$/,'')+'â€¦':DATA.verse.text}</div><div class="lbl" style="margin-top:12px;color:var(--down)">${DATA.verse.ref}</div>`;
+const wVerseLarge=()=>`<div class="lbl">Verse of the day</div><div style="font-family:var(--serif);font-size:23px;line-height:1.42;margin-top:16px">${DATA.verse.text}</div><div class="lbl" style="margin-top:12px;color:var(--down)">${DATA.verse.ref}</div>`;
+
+function build(){ document.getElementById("grid").innerHTML=`
+    <div class="widget w-small">${wSessSmall()}</div>
+    <div class="widget w-small">${wNewsSmall()}</div>
+    <div class="widget w-med">${wSessMed()}</div>
+    <div class="widget w-large">${wSessLarge()}</div>
+    <div class="widget w-small">${wVerseSmall()}</div>
+    <div class="widget w-med">${wNewsMed()}</div>
+    <div class="widget w-large">${wNewsLarge()}</div>
+    <div class="widget w-large">${wVerseLarge()}</div>`;
+  const d=new Date(); document.querySelector(".sb-time").textContent=((d.getHours()%12)||12)+":"+String(d.getMinutes()).padStart(2,"0"); }
+
+const cb=document.getElementById("cb"),wpbar=document.getElementById("wpbar"),stage=document.getElementById("stage"),wall=document.getElementById("wall");
+CONCEPTS.forEach(([id,n],i)=>{ const b=document.createElement("button");b.textContent=n;b.setAttribute("aria-pressed",i===0);
+  b.onclick=()=>{stage.dataset.concept=id;[...cb.children].forEach(x=>x.setAttribute("aria-pressed","false"));b.setAttribute("aria-pressed","true");};cb.appendChild(b); });
+WP.forEach(id=>{ const b=document.createElement("button");b.textContent=id[0].toUpperCase()+id.slice(1);b.setAttribute("aria-pressed",id==="midnight");
+  b.onclick=()=>{wall.dataset.wp=id;[...wpbar.children].forEach(x=>x.setAttribute("aria-pressed","false"));b.setAttribute("aria-pressed","true");};wpbar.appendChild(b); });
+const Q=new URLSearchParams(location.search);
+if(Q.get("concept")) stage.dataset.concept=Q.get("concept");
+if(Q.get("wp")) wall.dataset.wp=Q.get("wp");
+if(Q.get("snap")==="1") document.body.classList.add("snap");
+
+chips(); build(); loadLive(); setInterval(build,1000);
+</script>
+</body>
+</html>

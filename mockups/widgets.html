@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bible + Trading Widgets - Design Preview</title>
+<style>
+  :root{
+    --gap: 14px;
+    --pad: 22px;
+    --phone-w: 390px;
+    --radius-widget: 28px;
+    --radius-icon: 24%;
+    --text: #ffffff;
+    --muted: rgba(255,255,255,.62);
+    --line: rgba(255,255,255,.14);
+    --up: #34d399;
+    --down: #f87171;
+    --open: #22c55e;
+    --closed: #f43f5e;
+    --amber: #fbbf24;
+  }
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{ margin:0; padding:0; }
+  body{
+    min-height:100vh;
+    background: #0a0a0f;
+    background-image:
+      radial-gradient(1200px 700px at 20% -10%, #1b2b4b 0%, transparent 60%),
+      radial-gradient(900px 600px at 110% 20%, #2a1740 0%, transparent 55%),
+      radial-gradient(800px 800px at 50% 120%, #0f2f2a 0%, transparent 60%);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: 34px 14px 60px;
+    gap: 22px;
+  }
+  .head{ text-align:center; max-width: 560px; }
+  .head h1{ font-size:20px; font-weight:700; letter-spacing:-.02em; margin:0 0 6px; }
+  .head p{ margin:0; font-size:13px; color:var(--muted); line-height:1.5; }
+  .toggle{ display:flex; gap:8px; background:rgba(255,255,255,.06); border:1px solid var(--line); padding:5px; border-radius:14px; }
+  .toggle button{
+    appearance:none; border:0; cursor:pointer; font:inherit; font-size:13px; font-weight:600;
+    color:#fff; background:transparent; padding:8px 16px; border-radius:10px; transition:.18s;
+    display:flex; align-items:center; gap:7px;
+  }
+  .toggle button[aria-pressed="true"]{ background:rgba(255,255,255,.14); box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+  .toggle .dot{ width:8px; height:8px; border-radius:50%; background:#7c8bff; box-shadow:0 0 10px #7c8bff; }
+
+  /* ---------- PHONE ---------- */
+  .phone{
+    position:relative;
+    width: var(--phone-w);
+    max-width:100%;
+    aspect-ratio: 390 / 844;
+    border-radius: 54px;
+    padding: 11px;
+    background: linear-gradient(160deg,#2a2a33,#0e0e12);
+    box-shadow: 0 40px 90px rgba(0,0,0,.65), 0 0 0 2px rgba(255,255,255,.06), inset 0 0 0 1px rgba(255,255,255,.05);
+  }
+  .screen{
+    position:relative;
+    width:100%; height:100%;
+    border-radius: 44px;
+    overflow:hidden;
+    background:#000;
+  }
+  /* wallpaper */
+  .wallpaper{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(120% 80% at 78% 8%, rgba(255,140,90,.55), transparent 45%),
+      radial-gradient(100% 70% at 15% 30%, rgba(90,120,255,.45), transparent 50%),
+      radial-gradient(120% 90% at 60% 100%, rgba(20,180,150,.35), transparent 55%),
+      linear-gradient(160deg,#141a2e 0%, #0a0c16 45%, #060609 100%);
+  }
+  .wallpaper::after{
+    content:""; position:absolute; inset:0;
+    background:
+      radial-gradient(2px 2px at 20% 40%, rgba(255,255,255,.5), transparent),
+      radial-gradient(1.5px 1.5px at 70% 25%, rgba(255,255,255,.4), transparent),
+      radial-gradient(1.5px 1.5px at 40% 70%, rgba(255,255,255,.35), transparent),
+      radial-gradient(1.5px 1.5px at 85% 65%, rgba(255,255,255,.3), transparent),
+      radial-gradient(1.5px 1.5px at 55% 50%, rgba(255,255,255,.25), transparent);
+    opacity:.8;
+  }
+
+  /* status bar */
+  .statusbar{
+    position:relative; z-index:5;
+    display:flex; justify-content:space-between; align-items:center;
+    padding: 16px 30px 4px;
+    font-size:14px; font-weight:600; letter-spacing:.01em;
+  }
+  .island{
+    position:absolute; top:11px; left:50%; transform:translateX(-50%);
+    width:120px; height:34px; border-radius:20px; background:#000; z-index:6;
+  }
+  .statusbar .right{ display:flex; align-items:center; gap:6px; }
+  .bars{ display:flex; align-items:flex-end; gap:2px; height:11px; }
+  .bars i{ width:3px; background:#fff; border-radius:1px; }
+  .bars i:nth-child(1){height:4px;} .bars i:nth-child(2){height:6px;}
+  .bars i:nth-child(3){height:8px;} .bars i:nth-child(4){height:11px;}
+  .batt{ width:24px; height:12px; border:1.5px solid rgba(255,255,255,.6); border-radius:3px; position:relative; }
+  .batt::after{ content:""; position:absolute; right:-3px; top:3px; width:2px; height:4px; background:rgba(255,255,255,.6); border-radius:0 1px 1px 0;}
+  .batt i{ position:absolute; inset:1.5px; width:70%; background:#fff; border-radius:1.5px; }
+
+  /* home grid */
+  .home{
+    position:relative; z-index:4;
+    padding: 12px var(--pad) 0;
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: min-content;
+    gap: var(--gap);
+  }
+  .col-2{ grid-column: span 2; }
+
+  /* ---------- WIDGET BASE ---------- */
+  .widget{
+    position:relative;
+    border-radius: var(--radius-widget);
+    padding: 16px 17px;
+    overflow:hidden;
+    isolation:isolate;
+    color:var(--text);
+    transition: background .25s, backdrop-filter .25s, box-shadow .25s;
+  }
+  /* FROSTED (reliable) */
+  body[data-style="frosted"] .widget{
+    background: rgba(28,28,34,.42);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    backdrop-filter: blur(22px) saturate(150%);
+    border:1px solid rgba(255,255,255,.12);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 10px 30px rgba(0,0,0,.28);
+  }
+  /* CLEAR (true transparent look) */
+  body[data-style="clear"] .widget{
+    background: transparent;
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow: none;
+    text-shadow: 0 1px 8px rgba(0,0,0,.65), 0 1px 2px rgba(0,0,0,.7);
+  }
+  body[data-style="clear"] .widget::before{
+    content:""; position:absolute; inset:0; z-index:-1;
+    background: linear-gradient(180deg, rgba(0,0,0,.20), rgba(0,0,0,.05));
+  }
+
+  .w-label{
+    display:flex; align-items:center; gap:6px;
+    font-size:10.5px; font-weight:700; letter-spacing:.10em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:10px;
+  }
+  .w-label svg{ width:12px; height:12px; }
+
+  /* ---------- SESSIONS WIDGET ---------- */
+  .sessions .next{
+    display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:12px;
+  }
+  .sessions .next .to{ font-size:12px; color:var(--muted); font-weight:600; }
+  .sessions .next .who{ font-size:20px; font-weight:800; letter-spacing:-.02em; line-height:1.05; }
+  .sessions .count{
+    font-variant-numeric: tabular-nums;
+    font-size:30px; font-weight:800; letter-spacing:-.03em; line-height:1;
+    background: linear-gradient(180deg,#fff,#b9c2d6);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  body[data-style="clear"] .sessions .count{ -webkit-text-fill-color:#fff; color:#fff; }
+  .pills{ display:grid; grid-template-columns: repeat(4,1fr); gap:7px; }
+  .pill{
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    padding:8px 4px; border-radius:14px;
+    background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.08);
+  }
+  body[data-style="clear"] .pill{ background:rgba(255,255,255,.06); }
+  .pill .city{ font-size:10px; font-weight:700; letter-spacing:.02em; }
+  .pill .clock{ font-size:9.5px; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .pill .st{ display:flex; align-items:center; gap:4px; font-size:9px; font-weight:800; letter-spacing:.06em; }
+  .dot-led{ width:6px; height:6px; border-radius:50%; }
+  .pill.on .dot-led{ background:var(--open); box-shadow:0 0 8px var(--open); animation:pulse 2s infinite; }
+  .pill.off .dot-led{ background:var(--closed); }
+  .pill.on{ border-color: rgba(34,197,94,.35); }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+  /* ---------- BIBLE WIDGET ---------- */
+  .bible{ display:flex; flex-direction:column; height:100%; }
+  .bible .ref{ font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--amber); }
+  .bible .verse{
+    margin-top:8px; font-size:14.5px; line-height:1.4; font-weight:600; letter-spacing:-.01em;
+    font-family: "Iowan Old Style","Palatino Linotype", Georgia, serif;
+  }
+  .bible .glow{ position:absolute; right:-20px; top:-20px; width:90px; height:90px; border-radius:50%;
+    background: radial-gradient(circle, rgba(251,191,36,.45), transparent 70%); }
+
+  /* ---------- SMALL SESSION CARD ---------- */
+  .mini .citybig{ font-size:17px; font-weight:800; letter-spacing:-.02em; }
+  .mini .sub{ font-size:10.5px; font-weight:700; letter-spacing:.06em; margin-top:3px; display:flex; align-items:center; gap:5px;}
+  .mini .bigtime{ margin-top:10px; font-size:26px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-.03em; }
+  .mini .foot{ font-size:10px; color:var(--muted); font-weight:600; margin-top:2px; }
+
+  /* ---------- CALENDAR WIDGET ---------- */
+  .cal .row{
+    display:grid; grid-template-columns: 30px 1fr auto; align-items:center; gap:10px;
+    padding:7px 0; border-top:1px solid rgba(255,255,255,.08);
+  }
+  .cal .row:first-of-type{ border-top:0; }
+  .cal .flag{ font-size:16px; text-align:center; }
+  .cal .ev{ font-size:12.5px; font-weight:600; letter-spacing:-.01em; }
+  .cal .ccy{ font-size:9.5px; color:var(--muted); font-weight:700; letter-spacing:.06em; }
+  .cal .t{ font-size:12px; font-weight:800; font-variant-numeric:tabular-nums; text-align:right; }
+  .impact{ display:inline-flex; gap:2px; margin-left:6px; vertical-align:middle;}
+  .impact i{ width:4px; height:4px; border-radius:50%; }
+  .i-high i{ background:var(--down); box-shadow:0 0 6px var(--down); }
+  .i-med i{ background:var(--amber); }
+  .i-low i{ background:rgba(255,255,255,.35); }
+
+  .soon{ color:var(--amber); }
+  .live{ color:var(--up); }
+
+  /* dock hint */
+  .dots{ position:relative; z-index:4; display:flex; justify-content:center; gap:7px; margin-top:14px; }
+  .dots i{ width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.28); }
+  .dots i:first-child{ background:#fff; }
+
+  .legend{ font-size:11.5px; color:var(--muted); text-align:center; max-width:520px; line-height:1.6; }
+  .legend b{ color:#fff; }
+</style>
+</head>
+<body data-style="frosted">
+
+  <div class="head">
+    <h1>Bible + Trading — All-in-One Widgets</h1>
+    <p>Live preview. Times &amp; countdowns are real (computed from UTC). Toggle the style to compare.</p>
+  </div>
+
+  <div class="toggle" role="group" aria-label="Widget style">
+    <button id="btnFrosted" aria-pressed="true" onclick="setStyle('frosted')"><span class="dot"></span>Frosted</button>
+    <button id="btnClear" aria-pressed="false" onclick="setStyle('clear')">
+      <span class="dot" style="background:transparent;box-shadow:none;border:1.5px solid #fff;width:8px;height:8px;"></span>Clear / Transparent
+    </button>
+  </div>
+
+  <div class="phone">
+    <div class="island"></div>
+    <div class="screen">
+      <div class="wallpaper"></div>
+
+      <div class="statusbar">
+        <span id="sb-time">9:41</span>
+        <span class="right">
+          <span class="bars"><i></i><i></i><i></i><i></i></span>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 10.5l1.6-1.9a2.4 2.4 0 0 0-3.2 0L8 10.5z" fill="#fff"/><path d="M4.6 6.6a5.4 5.4 0 0 1 6.8 0" stroke="#fff" stroke-width="1.3"/><path d="M2 4a9 9 0 0 1 12 0" stroke="#fff" stroke-width="1.3"/></svg>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+
+      <div class="home">
+
+        <!-- MARKET SESSIONS (medium) -->
+        <div class="widget sessions col-2">
+          <div class="w-label">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            FX Market Sessions
+            <span class="live" style="margin-left:auto;font-weight:800;">● LIVE</span>
+          </div>
+          <div class="next">
+            <div>
+              <div class="to" id="next-to">Next open</div>
+              <div class="who" id="next-who">New York</div>
+            </div>
+            <div class="count" id="countdown">00:00:00</div>
+          </div>
+          <div class="pills" id="pills"></div>
+        </div>
+
+        <!-- BIBLE (small) -->
+        <div class="widget bible">
+          <div class="glow"></div>
+          <div class="w-label">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M6 3h9a3 3 0 0 1 3 3v15l-6-3-6 3V6a3 3 0 0 1 0-3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+            Verse of the Day
+          </div>
+          <div class="ref">Proverbs 3:5–6</div>
+          <div class="verse">“Trust in the Lord with all your heart, and lean not on your own understanding.”</div>
+        </div>
+
+        <!-- LONDON (small) -->
+        <div class="widget mini">
+          <div class="w-label">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>
+            London
+          </div>
+          <div class="citybig" id="mini-city">London</div>
+          <div class="sub" id="mini-status"><span class="dot-led" style="width:6px;height:6px;border-radius:50%;background:var(--open);box-shadow:0 0 8px var(--open);display:inline-block"></span> OPEN</div>
+          <div class="bigtime" id="mini-time">08:00</div>
+          <div class="foot" id="mini-foot">closes in 4h 12m</div>
+        </div>
+
+        <!-- ECON CALENDAR (medium) -->
+        <div class="widget cal col-2">
+          <div class="w-label">
+            <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="2"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Forex Economic News
+            <span style="margin-left:auto;font-weight:700;letter-spacing:.04em;">Today</span>
+          </div>
+          <div class="row">
+            <div class="flag">🇺🇸</div>
+            <div><div class="ev">Core CPI <span class="impact i-high"><i></i><i></i><i></i></span></div><div class="ccy">USD · High impact</div></div>
+            <div class="t soon">13:30</div>
+          </div>
+          <div class="row">
+            <div class="flag">🇬🇧</div>
+            <div><div class="ev">BoE Rate Decision <span class="impact i-high"><i></i><i></i><i></i></span></div><div class="ccy">GBP · High impact</div></div>
+            <div class="t">12:00</div>
+          </div>
+          <div class="row">
+            <div class="flag">🇪🇺</div>
+            <div><div class="ev">ECB Lagarde Speech <span class="impact i-med"><i></i><i></i><i></i></span></div><div class="ccy">EUR · Medium impact</div></div>
+            <div class="t">09:45</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="dots"><i></i><i></i><i></i></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <b>Frosted</b> = frosted glass (blur) — always looks right, never breaks.<br>
+    <b>Clear / Transparent</b> = fully see-through over the wallpaper — the “invisible widget” look.<br>
+    Note: real iOS widgets show a wallpaper crop, so this is exactly how it reads on-device.
+  </div>
+
+<script>
+  // ---- FX session definitions (UTC) ----
+  const SESSIONS = [
+    { city:"Sydney",  open:22*60, dur:9*60 },
+    { city:"Tokyo",   open:0,     dur:9*60 },
+    { city:"London",  open:8*60,  dur:9*60 },
+    { city:"New York",open:13*60, dur:9*60 },
+  ];
+
+  function nowUTC(){ const d=new Date(); return { m: d.getUTCHours()*60 + d.getUTCMinutes(), s: d.getUTCSeconds() }; }
+
+  function sessionState(s, nowMin){
+    const diff = (nowMin - s.open + 1440) % 1440;
+    const open = diff < s.dur;
+    const nextOpen = open ? 0 : (s.open - nowMin + 1440) % 1440;
+    const closeIn = open ? (s.dur - diff) : 0;
+    return { open, nextOpen, closeIn };
+  }
+
+  function fmtHM(min){ min=Math.floor(min); const h=Math.floor(min/60), m=min%60; return h+"h "+String(m).padStart(2,"0")+"m"; }
+  function fmtClock(sec){
+    sec=Math.max(0,Math.floor(sec));
+    const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60;
+    return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+  }
+  function localTimeFor(offsetMin){
+    // offsetMin = minutes offset from UTC for display city (approx, no DST handling)
+    const d=new Date();
+    const t = (d.getUTCHours()*60 + d.getUTCMinutes() + offsetMin + 1440) % 1440;
+    return String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0");
+  }
+
+  // rough display offsets (non-DST)
+  const OFFSET = { "Sydney":600, "Tokyo":540, "London":60, "New York":-240 };
+
+  function render(){
+    const { m:nowMin, s } = nowUTC();
+    const states = SESSIONS.map(x=>({...x, ...sessionState(x, nowMin)}));
+
+    // countdown to next open
+    let best = states.filter(x=>!x.open).sort((a,b)=>a.nextOpen-b.nextOpen)[0];
+    let nextWho, countSec;
+    if(best){
+      nextWho = best.city;
+      countSec = best.nextOpen*60 - s;
+      // if a session is currently open, show "next" as the following open
+    } else {
+      best = states.sort((a,b)=>a.nextOpen-b.nextOpen)[0];
+      nextWho = best.city; countSec = best.nextOpen*60 - s;
+    }
+    document.getElementById("next-who").textContent = nextWho;
+    document.getElementById("countdown").textContent = fmtClock(countSec);
+    document.getElementById("next-to").textContent = "Opens in";
+
+    // pills
+    const pills = document.getElementById("pills");
+    pills.innerHTML = states.map(x=>{
+      const on = x.open;
+      const st = on ? "OPEN" : "CLOSED";
+      const clock = localTimeFor(OFFSET[x.city]);
+      return `<div class="pill ${on?'on':'off'}">
+        <span class="city">${x.city}</span>
+        <span class="clock">${clock}</span>
+        <span class="st"><span class="dot-led"></span>${st}</span>
+      </div>`;
+    }).join("");
+
+    // mini (London)
+    const l = states.find(x=>x.city==="London");
+    const mCity = document.getElementById("mini-city");
+    const mStatus = document.getElementById("mini-status");
+    const mTime = document.getElementById("mini-time");
+    const mFoot = document.getElementById("mini-foot");
+    mCity.textContent = "London";
+    mTime.textContent = localTimeFor(OFFSET["London"]);
+    if(l.open){
+      mStatus.innerHTML = `<span class="dot-led" style="width:6px;height:6px;border-radius:50%;background:var(--open);box-shadow:0 0 8px var(--open);display:inline-block"></span> OPEN`;
+      mFoot.textContent = "closes in " + fmtHM(l.closeIn);
+    } else {
+      mStatus.innerHTML = `<span class="dot-led" style="width:6px;height:6px;border-radius:50%;background:var(--closed);display:inline-block"></span> CLOSED`;
+      mFoot.textContent = "opens in " + fmtHM(l.nextOpen);
+    }
+
+    // status bar clock (local)
+    const d=new Date();
+    document.getElementById("sb-time").textContent = ((d.getHours()%12)||12)+":"+String(d.getMinutes()).padStart(2,"0");
+  }
+
+  function setStyle(s){
+    document.body.dataset.style = s;
+    document.getElementById("btnFrosted").setAttribute("aria-pressed", s==="frosted");
+    document.getElementById("btnClear").setAttribute("aria-pressed", s==="clear");
+  }
+
+  render();
+  setInterval(render, 1000);
+</script>
+</body>
+</html>

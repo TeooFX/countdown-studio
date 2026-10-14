@@ -1,0 +1,14 @@
+# Build output
+build/
+Payload/
+DerivedData/
+*.ipa
+
+# Large / unrelated artifacts
+/TikTok GTok*.ipa*
+/analysis/
+/report.txt
+mockups/shots/
+
+# macOS
+.DS_Store

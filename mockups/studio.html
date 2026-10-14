@@ -1,0 +1,1330 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Countdown Studio â€” widget design &amp; live data</title>
+<style>
+  :root{
+    --bg:#08090c; --panel:#0e1015; --panel2:#12151b; --line:rgba(255,255,255,.08);
+    --txt:#e9ecf1; --dim:rgba(255,255,255,.55); --dim2:rgba(255,255,255,.34);
+    --accent:#6ea8ff;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,sans-serif;
+    --serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace;
+    /* widget vars (driven by controls) */
+    --radius:30px; --blur:34px; --tint:.075; --wt:200; --rp:9px; --gap:18px; --pad:24px;
+    --wacc:#ffffff;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{ background:var(--bg); color:var(--txt); font-family:var(--font); -webkit-font-smoothing:antialiased; }
+  .app{ display:grid; grid-template-columns:340px 1fr; min-height:100vh; }
+
+  /* ---------- panel ---------- */
+  .panel{ background:var(--panel); border-right:1px solid var(--line); padding:22px 20px 60px; overflow-y:auto; height:100vh; position:sticky; top:0; }
+  .brand{ display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .brand .logo{ width:26px; height:26px; border-radius:8px; background:linear-gradient(140deg,#7c9cff,#3ad0a0); box-shadow:0 6px 18px rgba(90,130,255,.35); }
+  .brand h1{ font-size:15px; font-weight:600; letter-spacing:-.01em; margin:0; }
+  .brand small{ display:block; color:var(--dim2); font-size:10.5px; font-weight:400; letter-spacing:.02em; }
+  .sec{ margin-top:24px; }
+  .sec > h2{ font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--dim2); margin:0 0 11px; font-weight:600; }
+  .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:9px; }
+  .row label{ font-size:12.5px; color:var(--dim); }
+  .row .val{ font-size:11px; color:var(--dim2); font-variant-numeric:tabular-nums; min-width:34px; text-align:right; }
+  input[type=range]{ -webkit-appearance:none; width:100%; height:2px; background:rgba(255,255,255,.14); border-radius:2px; outline:none; margin:6px 0 2px; }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:#fff; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.5); }
+
+  .seg{ display:flex; background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:3px; gap:3px; }
+  .seg button{ flex:1; appearance:none; cursor:pointer; font:inherit; font-size:11.5px; color:var(--dim); background:transparent; border:0; padding:7px 4px; border-radius:7px; transition:.14s; white-space:nowrap; }
+  .seg button:hover{ color:var(--txt); }
+  .seg button[aria-pressed="true"]{ background:rgba(255,255,255,.10); color:#fff; box-shadow:inset 0 0 0 .5px rgba(255,255,255,.14); }
+  .seg.grid2{ flex-wrap:wrap; } .seg.grid2 button{ flex:1 0 44%; }
+
+  .swatches{ display:flex; gap:9px; }
+  .sw{ width:26px; height:26px; border-radius:50%; cursor:pointer; border:1.5px solid rgba(255,255,255,.14); position:relative; transition:.14s; }
+  .sw:hover{ transform:scale(1.06); }
+  .sw[aria-pressed="true"]{ box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px #fff; }
+  .sw.none{ background:conic-gradient(#666,#999,#666); } .sw.none::after{ content:""; position:absolute; inset:60% 10% auto 10%; height:1.5px; background:#111; transform:rotate(-45deg); transform-origin:center; }
+
+  .wps{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .wp{ aspect-ratio:1/1.35; border-radius:9px; cursor:pointer; border:1.5px solid rgba(255,255,255,.12); transition:.14s; }
+  .wp:hover{ transform:translateY(-1px); }
+  .wp[aria-pressed="true"]{ box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px #fff; }
+  .wp[data-wp="midnight"]{ background:radial-gradient(120% 82% at 80% 4%, rgba(255,120,90,.5), transparent 46%),radial-gradient(100% 72% at 10% 30%, rgba(84,112,255,.6), transparent 52%),linear-gradient(165deg,#0e1423,#050508); }
+  .wp[data-wp="dusk"]{ background:radial-gradient(120% 82% at 82% 8%, rgba(255,150,70,.7), transparent 48%),radial-gradient(110% 92% at 8% 92%, rgba(140,60,200,.7), transparent 52%),linear-gradient(170deg,#20122f,#050308); }
+  .wp[data-wp="forest"]{ background:radial-gradient(120% 82% at 24% 14%, rgba(60,200,140,.5), transparent 50%),radial-gradient(120% 92% at 92% 92%, rgba(20,120,90,.6), transparent 55%),linear-gradient(165deg,#091a15,#030706); }
+  .wp[data-wp="graphite"]{ background:radial-gradient(120% 92% at 70% 4%, rgba(255,255,255,.2), transparent 45%),linear-gradient(165deg,#18181e,#060609); }
+
+  .actions{ display:flex; gap:8px; margin-top:22px; }
+  .btn{ flex:1; appearance:none; cursor:pointer; font:inherit; font-size:12px; color:var(--txt); background:var(--panel2); border:1px solid var(--line); padding:10px; border-radius:10px; transition:.14s; }
+  .btn:hover{ background:rgba(255,255,255,.08); }
+  .btn.primary{ background:#fff; color:#0a0a0c; border-color:#fff; font-weight:500; }
+
+  .src{ margin-top:20px; font-size:10.5px; color:var(--dim2); line-height:1.7; }
+  .src b{ color:var(--dim); font-weight:500; }
+  .src .pill{ display:inline-block; padding:1px 7px; border-radius:20px; font-size:9.5px; border:1px solid var(--line); margin-left:5px; }
+  .pill.live{ color:#7bf0b8; border-color:rgba(90,224,160,.4); }
+  .pill.snap{ color:#f0c07b; border-color:rgba(224,180,90,.35); }
+
+  /* ---------- preview ---------- */
+  .preview{ display:flex; flex-direction:column; align-items:center; padding:36px 24px 80px; min-height:100vh;
+    background-image:radial-gradient(1000px 700px at 20% -10%, #0c0f18 0, transparent 60%),radial-gradient(900px 700px at 110% 20%, #0d0a16 0, transparent 55%); }
+  .preview .cap{ font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--dim2); margin-bottom:18px; }
+
+  .stage{ position:relative; width:390px; border-radius:56px; padding:11px; background:linear-gradient(160deg,#242429,#0b0b0f); box-shadow:0 46px 100px rgba(0,0,0,.72),0 0 0 1px rgba(255,255,255,.05); }
+  .screen{ position:relative; border-radius:45px; overflow:hidden; }
+  .wallpaper{ position:absolute; inset:0; }
+  .wallpaper[data-wp="midnight"]{ background:radial-gradient(120% 82% at 80% 4%, rgba(255,120,90,.24), transparent 46%),radial-gradient(100% 72% at 10% 30%, rgba(84,112,255,.30), transparent 52%),radial-gradient(120% 92% at 60% 104%, rgba(20,175,140,.20), transparent 55%),linear-gradient(165deg,#0e1423,#080a12 46%,#050508); }
+  .wallpaper[data-wp="dusk"]{ background:radial-gradient(120% 82% at 82% 8%, rgba(255,150,70,.48), transparent 48%),radial-gradient(110% 92% at 8% 92%, rgba(140,60,200,.48), transparent 52%),linear-gradient(170deg,#20122f,#0b0614 55%,#050308); }
+  .wallpaper[data-wp="forest"]{ background:radial-gradient(120% 82% at 24% 14%, rgba(60,200,140,.24), transparent 50%),radial-gradient(120% 92% at 92% 92%, rgba(20,120,90,.38), transparent 55%),linear-gradient(165deg,#091a15,#05100d 55%,#030706); }
+  .wallpaper[data-wp="graphite"]{ background:radial-gradient(120% 92% at 70% 4%, rgba(255,255,255,.11), transparent 45%),linear-gradient(165deg,#18181e,#0c0c10 55%,#060609); }
+  .wallpaper::before{ content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 52%,rgba(0,0,0,.42)); }
+
+  .statusbar{ position:relative; z-index:5; display:flex; justify-content:space-between; align-items:center; padding:16px 31px 4px; font-size:14px; font-weight:500; }
+  .island{ position:absolute; top:11px; left:50%; transform:translateX(-50%); width:120px; height:34px; border-radius:20px; background:#000; z-index:6; }
+  .statusbar .right{ display:flex; align-items:center; gap:6px; }
+  .bars{ display:flex; align-items:flex-end; gap:2px; height:11px; } .bars i{ width:3px; background:#fff; border-radius:1px; }
+  .bars i:nth-child(1){height:4px} .bars i:nth-child(2){height:6px} .bars i:nth-child(3){height:8px} .bars i:nth-child(4){height:11px}
+  .batt{ width:24px; height:12px; border:1.5px solid rgba(255,255,255,.5); border-radius:3px; position:relative; }
+  .batt::after{ content:""; position:absolute; right:-3px; top:3px; width:2px; height:4px; background:rgba(255,255,255,.5); border-radius:0 1px 1px 0; }
+  .batt i{ position:absolute; inset:1.5px; width:70%; background:#fff; border-radius:1.5px; }
+
+  .grid{ position:relative; z-index:4; padding:12px var(--pad) 34px; display:grid; grid-template-columns:repeat(2,1fr); gap:var(--gap); }
+
+  .widget{ position:relative; color:#fff; padding:20px 21px; border-radius:var(--radius); font-family:var(--font); text-shadow:0 1px 14px rgba(0,0,0,.55),0 1px 2px rgba(0,0,0,.55); }
+  .widget > *{ position:relative; z-index:1; }
+  .w-small{ aspect-ratio:1/1; display:flex; flex-direction:column; justify-content:center; }
+  .w-med{ grid-column:span 2; min-height:158px; display:flex; flex-direction:column; justify-content:center; }
+  .w-large{ grid-column:span 2; min-height:360px; display:flex; flex-direction:column; }
+
+  .lbl{ display:flex; align-items:center; gap:7px; font-size:9px; letter-spacing:.26em; text-transform:uppercase; color:rgba(255,255,255,.42); font-weight:500; }
+  .lbl .r{ margin-left:auto; letter-spacing:.12em; color:rgba(255,255,255,.30); text-transform:none; }
+  .big{ font-size:46px; letter-spacing:-.045em; line-height:.94; font-variant-numeric:tabular-nums; }
+  .mid{ font-size:17px; font-weight:300; letter-spacing:-.01em; }
+  .meta{ font-size:11px; color:var(--dim); font-weight:400; }
+  .sub{ font-size:11.5px; color:rgba(255,255,255,.56); }
+  .v{ font-variant-numeric:tabular-nums; }
+
+  .ringwrap{ position:relative; width:118px; height:118px; flex:none; }
+  .ring{ width:118px; height:118px; transform:rotate(-90deg); }
+  .rbg{ fill:none; stroke:rgba(255,255,255,.13); stroke-width:2; }
+  .rp{ fill:none; stroke:var(--wacc); stroke-width:2; stroke-linecap:round; }
+  .ring-cd{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:200; letter-spacing:-.035em; font-variant-numeric:tabular-nums; }
+
+  .track{ height:2px; border-radius:2px; background:rgba(255,255,255,.14); overflow:hidden; }
+  .track i{ display:block; height:100%; background:var(--wacc); border-radius:2px; }
+
+  .mlist{ width:100%; }
+  .mrow{ display:grid; grid-template-columns:1fr auto 42px; align-items:center; gap:14px; padding:var(--rp) 0; border-top:1px solid rgba(255,255,255,.075); }
+  .mrow:first-child{ border-top:0; }
+  .mrow .nm{ font-size:12.5px; font-weight:400; color:rgba(255,255,255,.92); display:flex; align-items:center; }
+  .mrow .nm.off{ color:rgba(255,255,255,.30); }
+  .mrow .cd2{ font-size:12.5px; color:#fff; font-variant-numeric:tabular-nums; }
+  .mrow .lt{ font-size:11px; color:rgba(255,255,255,.56); text-align:right; font-variant-numeric:tabular-nums; }
+  .dot{ width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,.20); margin-right:9px; flex:none; }
+  .dot.on{ background:var(--wacc); box-shadow:0 0 8px var(--wacc); }
+
+  .hero-flex{ display:grid; grid-template-columns:auto 1fr; align-items:center; gap:22px; }
+  .herobar{ margin-top:14px; }
+
+  .nlist{ width:100%; }
+  .nrow{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px; padding:calc(var(--rp) + 1px) 0; border-top:1px solid rgba(255,255,255,.075); }
+  .nrow:first-child{ border-top:0; }
+  .nrow .ti{ font-size:12.5px; font-weight:400; color:rgba(255,255,255,.92); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nrow .ti .cc{ color:rgba(255,255,255,.42); font-size:9.5px; letter-spacing:.12em; margin-right:8px; }
+  .nrow .rt{ text-align:right; }
+  .nrow .rt b{ display:block; font-weight:400; font-size:12px; color:#fff; font-variant-numeric:tabular-nums; }
+  .nrow .rt s{ display:block; font-size:10px; color:rgba(255,255,255,.30); margin-top:2px; text-decoration:none; font-variant-numeric:tabular-nums; }
+  .nrow .imp{ display:inline-block; width:5px; height:5px; border-radius:50%; margin-right:7px; flex:none; }
+  .imp.high{ background:var(--wacc); } .imp.med{ box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6); } .imp.low,.imp.hol{ background:rgba(255,255,255,.2); }
+  .iday{ font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.30); margin:13px 0 3px; }
+
+  .pairs{ width:100%; margin-top:6px; }
+  .pair{ display:flex; align-items:baseline; justify-content:space-between; padding:var(--rp) 0; border-top:1px solid rgba(255,255,255,.075); }
+  .pair:first-child{ border-top:0; }
+  .pair .nn{ font-size:12.5px; color:rgba(255,255,255,.9); } .pair .pp{ font-size:12.5px; color:#fff; font-variant-numeric:tabular-nums; }
+  .serif{ font-family:var(--serif); }
+
+  /* numeral style */
+  .stage[data-num="thin"] .big,.stage[data-num="thin"] .ring-cd,.stage[data-num="thin"] .mid{ font-weight:var(--wt); }
+  .stage[data-num="serif"] .big,.stage[data-num="serif"] .ring-cd,.stage[data-num="serif"] .mid{ font-family:var(--serif); font-weight:400; letter-spacing:-.02em; }
+  .stage[data-num="mono"] .big,.stage[data-num="mono"] .ring-cd,.stage[data-num="mono"] .mid{ font-family:var(--mono); font-weight:300; letter-spacing:-.05em; }
+
+  /* surfaces */
+  .stage[data-surface="glass"] .widget{ background:linear-gradient(180deg,rgba(255,255,255,var(--tint)),rgba(255,255,255,calc(var(--tint)*.2))); -webkit-backdrop-filter:blur(var(--blur)) saturate(180%); backdrop-filter:blur(var(--blur)) saturate(180%); box-shadow:inset 0 0 0 .5px rgba(255,255,255,.13),0 26px 54px -26px rgba(0,0,0,.75); }
+  .stage[data-surface="darkglass"] .widget{ background:linear-gradient(180deg,rgba(8,8,10,.42),rgba(8,8,10,.22)); -webkit-backdrop-filter:blur(var(--blur)) saturate(130%); backdrop-filter:blur(var(--blur)) saturate(130%); box-shadow:inset 0 0 0 .5px rgba(255,255,255,.16),0 26px 54px -26px rgba(0,0,0,.8); }
+  .stage[data-surface="none"] .widget{ background:none; text-shadow:0 2px 22px rgba(0,0,0,.7),0 1px 3px rgba(0,0,0,.75); }
+  .stage[data-overlay="aurora"] .widget::after{ content:""; position:absolute; inset:0; border-radius:inherit; z-index:0; background:radial-gradient(72% 52% at 86% -6%, rgba(132,152,255,.30), transparent 62%),radial-gradient(62% 52% at -6% 106%, rgba(96,224,180,.17), transparent 62%); }
+  .stage[data-glow="1"] .widget::after{ content:""; position:absolute; inset:-6% -4%; z-index:0; background:radial-gradient(55% 42% at 50% 42%, rgba(255,255,255,.10), transparent 68%); }
+  .stage[data-hairline="1"] .widget::before{ content:""; position:absolute; top:16px; left:20px; right:20px; height:1px; z-index:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.30),transparent); }
+  .stage[data-metal="1"] .big,.stage[data-metal="1"] .mid,.stage[data-metal="1"] .ring-cd{ background:linear-gradient(180deg,#fff 0%,#e7ebf1 46%,#9aa1ac 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; text-shadow:none; }
+
+  .tmpl{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .card{ position:relative; border-radius:18px; padding:16px; border:1px solid var(--line); background:var(--panel2); }
+  .card h3{ margin:0 0 3px; font-size:12.5px; font-weight:600; }
+  .card p{ margin:0; font-size:10.5px; color:var(--dim2); line-height:1.6; }
+  .card .tag{ position:absolute; top:12px; right:12px; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim2); border:1px solid var(--line); padding:2px 7px; border-radius:20px; }
+
+  @media (max-width:900px){ .app{ grid-template-columns:1fr; } .panel{ position:static; height:auto; } }
+
+  /* ---------- snapshot mode (headless screenshots) ---------- */
+  body.snap{ background:#050508; }
+  body.snap .app{ grid-template-columns:1fr; }
+  body.snap .panel{ display:none; }
+  body.snap .preview{ padding:0; min-height:0; height:100vh; justify-content:flex-start; }
+  body.snap .preview .cap{ display:none; }
+  body.snap .stage{ border-radius:0; padding:0; background:#050508; box-shadow:none; width:390px; }
+  body.snap .screen{ border-radius:0; }
+  body.snap .island{ display:none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="panel">
+    <div class="brand"><div class="logo"></div><div><h1>Countdown Studio</h1><small>Forex sessions Â· news Â· verse</small></div></div>
+
+    <div class="sec"><h2>Concept</h2><div class="seg grid2" id="cConcept"></div></div>
+
+    <div class="sec"><h2>Wallpaper</h2><div class="wps" id="cWp"></div></div>
+
+    <div class="sec"><h2>Surface</h2>
+      <div class="row"><label>Corner radius</label><span class="val" id="vRadius">30</span></div>
+      <input type="range" id="rRadius" min="0" max="44" step="1" value="30">
+      <div class="row"><label>Glass blur</label><span class="val" id="vBlur">34</span></div>
+      <input type="range" id="rBlur" min="0" max="60" step="1" value="34">
+      <div class="row"><label>Glass tint</label><span class="val" id="vTint">.08</span></div>
+      <input type="range" id="rTint" min="0" max="20" step="1" value="8">
+    </div>
+
+    <div class="sec"><h2>Typography</h2>
+      <div class="row"><label>Numerals</label></div>
+      <div class="seg" id="cNum"><button data-v="thin">Thin</button><button data-v="serif">Serif</button><button data-v="mono">Mono</button></div>
+      <div class="row" style="margin-top:12px"><label>Weight</label><span class="val" id="vWt">200</span></div>
+      <input type="range" id="rWt" min="100" max="500" step="100" value="200">
+    </div>
+
+    <div class="sec"><h2>Accent</h2><div class="swatches" id="cAcc"></div></div>
+
+    <div class="sec"><h2>Layout</h2>
+      <div class="row"><label>Density</label></div>
+      <div class="seg" id="cDens"><button data-v="comfortable">Comfortable</button><button data-v="compact">Compact</button></div>
+      <div class="row" style="margin-top:12px"><label>Countdown</label></div>
+      <div class="seg" id="cProg"><button data-v="ring">Ring</button><button data-v="bar">Bar</button></div>
+      <div class="row" style="margin-top:12px"><label>Show seconds</label></div>
+      <div class="seg" id="cSec"><button data-v="1">On</button><button data-v="0">Off</button></div>
+      <div class="row" style="margin-top:12px"><label>Clock</label></div>
+      <div class="seg" id="cH"><button data-v="1">24-hour</button><button data-v="0">12-hour</button></div>
+    </div>
+
+    <div class="sec"><h2>Data</h2>
+      <div class="row"><label>Sessions</label></div>
+      <div class="seg" id="cSess"><button data-v="fx">Forex</button><button data-v="fxstock">+Stocks</button></div>
+      <div class="row" style="margin-top:12px"><label>News filter</label></div>
+      <div class="seg" id="cNews"><button data-v="hm">High+Med</button><button data-v="all">All</button><button data-v="h">High</button></div>
+    </div>
+
+    <div class="sec"><h2>Widgets shown</h2>
+      <div class="row"><label>FX rates</label><div class="seg" style="flex:0 0 110px" id="cRates"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
+      <div class="row"><label>Verse</label><div class="seg" style="flex:0 0 110px" id="cVerse"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="reset">Reset</button>
+      <button class="btn primary" id="copy">Copy config</button>
+    </div>
+
+    <div class="src" id="src"></div>
+  </aside>
+
+  <main class="preview">
+    <div class="cap">Home screen preview Â· live</div>
+    <div class="stage" id="stage" data-surface="glass" data-overlay="aurora" data-num="thin">
+      <div class="island"></div>
+      <div class="screen">
+        <div class="wallpaper" id="wall" data-wp="midnight"></div>
+        <div class="statusbar"><span class="sb-time">9:41</span><span class="right"><span class="bars"><i></i><i></i><i></i><i></i></span><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 10.5l1.6-1.9a2.4 2.4 0 0 0-3.2 0L8 10.5z" fill="#fff"/><path d="M4.6 6.6a5.4 5.4 0 0 1 6.8 0" stroke="#fff" stroke-width="1.3"/><path d="M2 4a9 9 0 0 1 12 0" stroke="#fff" stroke-width="1.3"/></svg><span class="batt"><i></i></span></span></div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SNAPSHOT = {
+    "generatedAt":  "2026-10-13T20:02:50.9257846Z",
+    "rates":  {
+                  "base":  "USD",
+                  "updated":  "Mon, 12 Oct 2026 23:57:31 +0000",
+                  "EUR":  0.895156,
+                  "GBP":  0.756615,
+                  "JPY":  158.544079,
+                  "CHF":  0.834009,
+                  "AUD":  1.436501,
+                  "CAD":  1.427373
+              },
+    "verse":  {
+                  "ref":  "1 Peter 2:24",
+                  "text":  "He himself bore our sins in his body on the tree, that we may cease from sinning and live for righteousness. By his wounds you were healed."
+              },
+    "events":  [
+                   {
+                       "title":  "Bank Holiday",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-11T19:00:00-04:00",
+                       "impact":  "Holiday",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Breeden Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-12T05:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Bank Holiday",
+                       "ccy":  "USD",
+                       "time":  "2026-10-12T07:00:00-04:00",
+                       "impact":  "Holiday",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Bank Holiday",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-12T08:00:00-04:00",
+                       "impact":  "Holiday",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Mann Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-12T08:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-12T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "FOMC Member Hammack Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-12T12:10:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BRC Retail Sales Monitor y/y",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-12T19:01:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.8%",
+                       "previous":  "0.5%"
+                   },
+                   {
+                       "title":  "PPI y/y",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-12T19:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "7.6%",
+                       "previous":  "7.6%"
+                   },
+                   {
+                       "title":  "Bank Lending y/y",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-12T19:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "5.5%",
+                       "previous":  "5.4%"
+                   },
+                   {
+                       "title":  "NAB Business Confidence",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-12T20:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "-8"
+                   },
+                   {
+                       "title":  "Monetary Policy Meeting Minutes",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-12T20:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Greene Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-12T23:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "German Final CPI m/m",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-13T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.6%",
+                       "previous":  "0.6%"
+                   },
+                   {
+                       "title":  "FOMC Member Waller Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T03:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "NFIB Small Business Index",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T06:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "98.1",
+                       "previous":  "98.7"
+                   },
+                   {
+                       "title":  "ADP Weekly Employment Change",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T08:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "23.8K"
+                   },
+                   {
+                       "title":  "Existing Home Sales",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T10:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "3.95M",
+                       "previous":  "3.98M"
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-13T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "CB Leading Index m/m",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-13T10:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "0.5%"
+                   },
+                   {
+                       "title":  "FOMC Member Barkin Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T13:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "FOMC Member Collins Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-13T16:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Visitor Arrivals m/m",
+                       "ccy":  "NZD",
+                       "time":  "2026-10-13T17:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "0.5%"
+                   },
+                   {
+                       "title":  "MI Leading Index m/m",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-13T19:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "0.0%"
+                   },
+                   {
+                       "title":  "M2 Money Stock y/y",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-13T19:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "2.1%",
+                       "previous":  "2.0%"
+                   },
+                   {
+                       "title":  "PPI y/y",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-13T21:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "4.4%",
+                       "previous":  "3.8%"
+                   },
+                   {
+                       "title":  "CPI y/y",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-13T21:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "1.0%",
+                       "previous":  "0.8%"
+                   },
+                   {
+                       "title":  "Trade Balance",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-13T22:03:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "790B",
+                       "previous":  "809B"
+                   },
+                   {
+                       "title":  "USD-Denominated Trade Balance",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-13T22:04:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "116.8B",
+                       "previous":  "119.1B"
+                   },
+                   {
+                       "title":  "ECB President Lagarde Speaks",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-13T22:10:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Breeden Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-13T23:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BOE Gov Bailey Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-14T01:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Pill Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-14T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "German WPI m/m",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-14T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.6%",
+                       "previous":  "0.9%"
+                   },
+                   {
+                       "title":  "BOC Gov Macklem Speaks",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-14T02:05:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "New Loans",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-14T04:03:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "1025B",
+                       "previous":  "60B"
+                   },
+                   {
+                       "title":  "M2 Money Supply y/y",
+                       "ccy":  "CNY",
+                       "time":  "2026-10-14T04:03:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "7.4%",
+                       "previous":  "7.5%"
+                   },
+                   {
+                       "title":  "ECB President Lagarde Speaks",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-14T04:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "German 30-y Bond Auction",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-14T05:34:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "3.80|1.6"
+                   },
+                   {
+                       "title":  "FOMC Member Bowman Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T05:40:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "EU Economic Summit",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-14T06:15:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "CPI m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.6%",
+                       "previous":  "0.4%"
+                   },
+                   {
+                       "title":  "CPI y/y",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "3.6%",
+                       "previous":  "3.4%"
+                   },
+                   {
+                       "title":  "Core CPI y/y",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "2.5%",
+                       "previous":  "2.4%"
+                   },
+                   {
+                       "title":  "Building Permits m/m",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "2.9%",
+                       "previous":  "-17.3%"
+                   },
+                   {
+                       "title":  "Core CPI m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.2%",
+                       "previous":  "0.3%"
+                   },
+                   {
+                       "title":  "CB Leading Index m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-14T09:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "-0.1%"
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-14T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "FOMC Member Barkin Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T13:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Beige Book",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T14:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "API Weekly Statistical Bulletin",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T16:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Core Machinery Orders m/m",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-14T19:50:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "2.2%",
+                       "previous":  "-3.7%"
+                   },
+                   {
+                       "title":  "Unemployment Rate",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-14T20:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "4.6%",
+                       "previous":  "4.6%"
+                   },
+                   {
+                       "title":  "Employment Change",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-14T20:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "19.6K",
+                       "previous":  "39.5K"
+                   },
+                   {
+                       "title":  "FOMC Member Bowman Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-14T22:55:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Pill Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-14T23:35:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "RBA Annual Report",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-15T00:25:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Revised Industrial Production m/m",
+                       "ccy":  "JPY",
+                       "time":  "2026-10-15T00:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-1.7%",
+                       "previous":  "-1.7%"
+                   },
+                   {
+                       "title":  "SNB Chairman Schlegel Speaks",
+                       "ccy":  "CHF",
+                       "time":  "2026-10-15T00:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Index of Services 3m/3m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.8%",
+                       "previous":  "0.6%"
+                   },
+                   {
+                       "title":  "Industrial Production m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-0.1%",
+                       "previous":  "0.2%"
+                   },
+                   {
+                       "title":  "Manufacturing Production m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-0.1%",
+                       "previous":  "0.9%"
+                   },
+                   {
+                       "title":  "GDP m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "-0.1%",
+                       "previous":  "0.4%"
+                   },
+                   {
+                       "title":  "Construction Output m/m",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.0%",
+                       "previous":  "0.1%"
+                   },
+                   {
+                       "title":  "Goods Trade Balance",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-21.9B",
+                       "previous":  "-21.0B"
+                   },
+                   {
+                       "title":  "PPI m/m",
+                       "ccy":  "CHF",
+                       "time":  "2026-10-15T02:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.6%",
+                       "previous":  "0.7%"
+                   },
+                   {
+                       "title":  "MPC Member Greene Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T02:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "French Final CPI m/m",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-15T02:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-0.3%",
+                       "previous":  "-0.3%"
+                   },
+                   {
+                       "title":  "BOE Gov Bailey Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T03:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "MPC Member Breeden Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T04:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Industrial Production m/m",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-15T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.0%",
+                       "previous":  "-0.1%"
+                   },
+                   {
+                       "title":  "Gov Council Member Rogers Speaks",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-15T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "EU Economic Summit",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-15T06:15:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Philly Fed Manufacturing Index",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "28.2",
+                       "previous":  "37.8"
+                   },
+                   {
+                       "title":  "Retail Sales m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.3%",
+                       "previous":  "1.2%"
+                   },
+                   {
+                       "title":  "Empire State Manufacturing Index",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "12.1",
+                       "previous":  "7.6"
+                   },
+                   {
+                       "title":  "Unemployment Claims",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "199K",
+                       "previous":  "197K"
+                   },
+                   {
+                       "title":  "PPI m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.6%",
+                       "previous":  "0.4%"
+                   },
+                   {
+                       "title":  "Wholesale Sales m/m",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-1.5%",
+                       "previous":  "0.3%"
+                   },
+                   {
+                       "title":  "Manufacturing Sales m/m",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "1.1%",
+                       "previous":  "-0.4%"
+                   },
+                   {
+                       "title":  "Core Retail Sales m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.6%",
+                       "previous":  "1.4%"
+                   },
+                   {
+                       "title":  "Core PPI m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T08:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "0.3%",
+                       "previous":  "0.2%"
+                   },
+                   {
+                       "title":  "Business Inventories m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T10:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.4%",
+                       "previous":  "0.8%"
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-15T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Natural Gas Storage",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T10:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "85B"
+                   },
+                   {
+                       "title":  "Crude Oil Inventories",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T12:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "-3.2M"
+                   },
+                   {
+                       "title":  "FOMC Member Hammack Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T16:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BusinessNZ Manufacturing Index",
+                       "ccy":  "NZD",
+                       "time":  "2026-10-15T17:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "53.1"
+                   },
+                   {
+                       "title":  "FPI m/m",
+                       "ccy":  "NZD",
+                       "time":  "2026-10-15T17:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "0.3%"
+                   },
+                   {
+                       "title":  "BOE Gov Bailey Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-15T22:00:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "German Buba President Nagel Speaks",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-15T22:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Fed Chairman Warsh Speaks",
+                       "ccy":  "USD",
+                       "time":  "2026-10-15T23:30:00-04:00",
+                       "impact":  "High",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BOC Gov Macklem Speaks",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-16T00:15:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Trade Balance",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-16T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "4.5B",
+                       "previous":  "5.0B"
+                   },
+                   {
+                       "title":  "Final CPI y/y",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-16T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "3.8%",
+                       "previous":  "3.8%"
+                   },
+                   {
+                       "title":  "Final Core CPI y/y",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-16T05:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "2.5%",
+                       "previous":  "2.5%"
+                   },
+                   {
+                       "title":  "Italian Trade Balance",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-16T06:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "7.50B",
+                       "previous":  "8.24B"
+                   },
+                   {
+                       "title":  "Gov Council Member Alexopoulos Speaks",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-16T08:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Housing Starts",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-16T08:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "234K",
+                       "previous":  "229K"
+                   },
+                   {
+                       "title":  "Import Prices m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.9%",
+                       "previous":  "0.7%"
+                   },
+                   {
+                       "title":  "Foreign Securities Purchases",
+                       "ccy":  "CAD",
+                       "time":  "2026-10-16T08:30:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  "20.65B"
+                   },
+                   {
+                       "title":  "Industrial Production m/m",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T09:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "0.4%",
+                       "previous":  "0.0%"
+                   },
+                   {
+                       "title":  "Capacity Utilization Rate",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T09:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "76.5%",
+                       "previous":  "76.3%"
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-16T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "Federal Budget Balance",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T14:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "-34.7B",
+                       "previous":  "-166.8B"
+                   },
+                   {
+                       "title":  "TIC Long-Term Purchases",
+                       "ccy":  "USD",
+                       "time":  "2026-10-16T16:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "75.2B",
+                       "previous":  "-27.9B"
+                   },
+                   {
+                       "title":  "German Buba President Nagel Speaks",
+                       "ccy":  "EUR",
+                       "time":  "2026-10-17T00:45:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "BOE Gov Bailey Speaks",
+                       "ccy":  "GBP",
+                       "time":  "2026-10-17T02:45:00-04:00",
+                       "impact":  "Medium",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "IMF Meetings",
+                       "ccy":  "All",
+                       "time":  "2026-10-17T10:15:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   },
+                   {
+                       "title":  "RBA Assist Gov Kent Speaks",
+                       "ccy":  "AUD",
+                       "time":  "2026-10-17T20:00:00-04:00",
+                       "impact":  "Low",
+                       "forecast":  "",
+                       "previous":  ""
+                   }
+               ]
+}
+;
+const CONCEPTS={
+  aurora:{surface:"glass",overlay:"aurora",label:"Aurora"},
+  mono:{surface:"glass",label:"Mono"},
+  frost:{surface:"glass",tint:1.5,label:"Frost"},
+  obsidian:{surface:"darkglass",label:"Obsidian"},
+  platinum:{surface:"darkglass",metal:"1",label:"Platinum"},
+  ink:{surface:"none",label:"Ink"},
+  halo:{surface:"none",glow:"1",label:"Halo"},
+  line:{surface:"none",hairline:"1",label:"Line"}
+};
+const ACCENTS={none:"#ffffff",blue:"#6ea8ff",teal:"#5fe0c0",green:"#7bdca0",amber:"#f0b35e",red:"#ff8080",violet:"#b39cff"};
+const WP=["midnight","dusk","forest","graphite"];
+
+const S={ concept:"aurora", wp:"midnight", radius:30, blur:34, tint:.08, num:"thin", wt:200,
+  accent:"none", dens:"comfortable", prog:"ring", sec:true, h24:true, sess:"fx", news:"hm", rates:true, verse:true };
+
+const DATA={ rates:SNAPSHOT.rates, verse:SNAPSHOT.verse, events:SNAPSHOT.events||[], liveRates:false, liveVerse:false, liveCal:false, srcTime:SNAPSHOT.generatedAt };
+
+/* ---------- data ---------- */
+async function getJSON(url,ms=9000){ const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);
+  try{ const r=await fetch(url,{signal:c.signal}); if(!r.ok) throw 0; return await r.json(); } finally{ clearTimeout(t);} }
+async function loadLive(){
+  try{ const r=await getJSON("https://open.er-api.com/v6/latest/USD");
+    if(r&&r.rates){ DATA.rates={EUR:r.rates.EUR,GBP:r.rates.GBP,JPY:r.rates.JPY,CHF:r.rates.CHF,AUD:r.rates.AUD,CAD:r.rates.CAD}; DATA.liveRates=true; DATA.srcTime=r.time_last_update_utc||new Date().toISOString(); } }catch(e){}
+  try{ const v=await getJSON("https://labs.bible.org/api/?passage=votd&type=json&format=json");
+    if(v&&v[0]){ DATA.verse={ref:v[0].bookname+" "+v[0].chapter+":"+v[0].verse, text:(v[0].text||"").replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim()}; DATA.liveVerse=true; } }catch(e){}
+  try{ const c=await getJSON("https://nfs.faireconomy.media/ff_calendar_thisweek.json");
+    if(Array.isArray(c)&&c.length){ DATA.events=c.map(e=>({title:e.title,ccy:e.country,time:e.date,impact:e.impact,forecast:e.forecast,previous:e.previous})); DATA.liveCal=true; } }catch(e){}
+  renderSrc(); build();
+}
+
+/* ---------- time (market-local; DST automatic) ---------- */
+const MARKETS=[
+  {name:"Sydney",   tz:"Australia/Sydney", open:8*60,    close:17*60,   type:"fx"},
+  {name:"Tokyo",    tz:"Asia/Tokyo",       open:9*60,    close:18*60,   type:"fx"},
+  {name:"London",   tz:"Europe/London",    open:8*60,    close:17*60,   type:"fx"},
+  {name:"New York", tz:"America/New_York", open:8*60,    close:17*60,   type:"fx"},
+  {name:"NYSE",     tz:"America/New_York", open:9*60+30, close:16*60,   type:"stock"},
+];
+function tzParts(tz){ const f=new Intl.DateTimeFormat("en-GB",{timeZone:tz,hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});
+  const o={}; f.formatToParts(new Date()).forEach(p=>o[p.type]=p.value); return {h:(+o.hour)%24,m:+o.minute,s:+o.second}; }
+function fmtLocal(tz){ const p=tzParts(tz); let h=p.h; if(!S.h24){ const ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+String(p.m).padStart(2,"0")+" "+ap; } return String(h).padStart(2,"0")+":"+String(p.m).padStart(2,"0"); }
+function localNow(){ const p={h:new Date().getHours(),m:new Date().getMinutes()}; let h=p.h; if(!S.h24){ const ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+String(p.m).padStart(2,"0")+" "+ap; } return String(h).padStart(2,"0")+":"+String(p.m).padStart(2,"0"); }
+const fmtClock=sec=>{ sec=Math.max(0,Math.floor(sec)); let h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;
+  return S.sec? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${h}:${String(m).padStart(2,"0")}`; };
+const fmtDur=sec=>{ sec=Math.max(0,Math.floor(sec)); const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;
+  return S.sec? (h>0?`${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`:`${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`) : `${h}:${String(m).padStart(2,"0")}`; };
+const fmtT=iso=>{ const d=new Date(iso); let h=d.getHours(); if(!S.h24){ const ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+String(d.getMinutes()).padStart(2,"0")+" "+ap; } return String(h).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
+const dayK=iso=>new Date(iso).toLocaleDateString([], {weekday:"long",day:"numeric",month:"short"});
+const cc=c=>({USD:"US",EUR:"EU",GBP:"GB",JPY:"JP",AUD:"AU",CAD:"CA",CHF:"CH",NZD:"NZ",CNY:"CN",All:"â€”"}[c]||c);
+
+function markets(){ const set=S.sess==="fx"?["fx"]:["fx","stock"];
+  return MARKETS.filter(m=>set.includes(m.type)).map(m=>{
+    const p=tzParts(m.tz), lm=p.h*60+p.m, ls=p.s;
+    const open=lm>=m.open&&lm<m.close; let count,pr;
+    if(open){ count=(m.close-lm)*60-ls; pr=(lm-m.open)/(m.close-m.open); }
+    else { const nextOpen=(lm<m.open)?m.open:m.open+1440; count=(nextOpen-lm)*60-ls;
+           const prevClose=(lm>=m.close)?m.close:m.close-1440; pr=(lm-prevClose)/(nextOpen-prevClose); }
+    return {name:m.name,tz:m.tz,open,label:open?"closes":"opens",count,p:Math.max(0,Math.min(1,pr)),local:fmtLocal(m.tz)}; }); }
+const nextMove=ms=>ms.slice().sort((a,b)=>a.count-b.count)[0];
+function upcoming(){ const now=Date.now(); let ev=DATA.events.slice().sort((a,b)=>new Date(a.time)-new Date(b.time)).filter(e=>new Date(e.time).getTime()>now-12*60*1000);
+  if(S.news==="hm") ev=ev.filter(e=>e.impact==="High"||e.impact==="Medium");
+  else if(S.news==="h") ev=ev.filter(e=>e.impact==="High");
+  return ev; }
+
+/* ---------- widget markup ---------- */
+const C=2*Math.PI*52;
+function ring(m){ return `<div class="ringwrap"><svg class="ring" viewBox="0 0 120 120"><circle class="rbg" cx="60" cy="60" r="52"/><circle class="rp" cx="60" cy="60" r="52" style="stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C*(1-m.p)).toFixed(1)}"/></svg><div class="ring-cd">${fmtClock(m.count)}</div></div>`; }
+function bar(m){ return `<div class="track herobar"><i style="width:${(m.p*100).toFixed(1)}%"></i></div>`; }
+function prog(m,big){ if(S.prog==="ring") return ring(m); return `<div style="width:100%"><div class="big" style="font-size:${big?33:30}px">${fmtClock(m.count)}</div>${bar(m)}</div>`; }
+function mrow(m){ return `<div class="mrow"><span class="nm ${m.open?'':'off'}"><span class="dot ${m.open?'on':''}"></span>${m.name}</span><span class="cd2">${fmtDur(m.count)}</span><span class="lt">${m.local}</span></div>`; }
+
+const wSessSmall=()=>{ const ms=markets(), ev=nextMove(ms);
+  return `<div class="lbl" style="justify-content:center">${ev.name}</div><div style="display:flex;justify-content:center;margin-top:12px">${prog(ev,false)}</div><div class="sub" style="text-align:center;margin-top:12px">${ev.label} Â· ${ev.local} local</div>`; };
+const wSessMed=()=>`<div class="lbl">Market sessions <span class="r">you ${localNow()}</span></div><div class="mlist" style="margin-top:8px">${markets().map(mrow).join("")}</div>`;
+const wSessLarge=()=>{ const ms=markets(), ev=nextMove(ms);
+  return `<div class="lbl">Market sessions <span class="r">you ${localNow()}</span></div>
+   <div class="hero-flex" style="margin-top:16px">${prog(ev,true)}<div><div class="meta">${ev.name} ${ev.label}</div><div class="sub" style="margin-top:8px">${ev.local} local</div></div></div>
+   <div class="mlist" style="margin-top:16px">${ms.map(mrow).join("")}</div>`; };
+
+const wNewsSmall=()=>{ const u=upcoming(); const e=u[0]||DATA.events[0]; const c=(new Date(e.time)-Date.now())/1000;
+  return `<div class="lbl">Next event</div><div class="meta" style="margin-top:14px">${cc(e.ccy)} Â· ${e.impact}</div><div class="mid" style="margin-top:9px;line-height:1.25">${e.title}</div><div class="big" style="margin-top:9px;font-size:30px">${fmtClock(c)}</div><div class="sub" style="margin-top:6px">${fmtT(e.time)} local</div>`; };
+const wNewsMed=()=>{ const u=upcoming().slice(0,3); return `<div class="lbl">Forex news <span class="r">next up</span></div><div class="nlist" style="margin-top:8px">${u.map(nrow).join("")}</div>`; };
+function wNewsLarge(){ const u=upcoming().slice(0,9); let last="",h="";
+  u.forEach(e=>{ const k=dayK(e.time); if(k!==last){ h+=`<div class="iday">${k}</div>`; last=k; } h+=nrow(e); });
+  return `<div class="lbl">Forex calendar <span class="r">countdown Â· local</span></div><div class="nlist">${h}</div>`; }
+function nrow(e){ const c=(new Date(e.time)-Date.now())/1000; const cl=e.impact==="High"?"high":(e.impact==="Medium"?"med":"low");
+  return `<div class="nrow"><span class="ti"><span class="imp ${cl}"></span><span class="cc">${cc(e.ccy)}</span>${e.title}</span><span class="rt"><b>${fmtClock(c)}</b><s>${fmtT(e.time)} local</s></span></div>`; }
+
+const PAIRS=["EUR","GBP","JPY","AUD","CHF","CAD"];
+const wRatesSmall=()=>{ const k=PAIRS.slice(0,3); return `<div class="lbl">USD / majors</div><div class="pairs">${k.map(p=>`<div class="pair"><span class="nn">USD${p}</span><span class="pp">${(DATA.rates[p]).toFixed(DATA.rates[p]<10?4:2)}</span></div>`).join("")}</div>`; };
+const wRatesMed=()=>`<div class="lbl">USD / majors <span class="r">${DATA.liveRates?'live':'snapshot'}</span></div><div class="pairs" style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:0 26px">${PAIRS.map(p=>`<div class="pair"><span class="nn">USD${p}</span><span class="pp">${(DATA.rates[p]).toFixed(DATA.rates[p]<10?4:2)}</span></div>`).join("")}</div>`;
+
+const wVerseSmall=()=>`<div class="serif" style="font-size:15px;line-height:1.52">${(DATA.verse.text||"").length>84?DATA.verse.text.slice(0,84).replace(/\s+\S*$/,'')+'â€¦':DATA.verse.text}</div><div class="lbl" style="margin-top:13px;color:rgba(255,255,255,.30)">${DATA.verse.ref}</div>`;
+const wVerseLarge=()=>`<div class="lbl">Verse of the day</div><div class="serif" style="font-size:24px;line-height:1.44;margin-top:18px">${DATA.verse.text}</div><div class="lbl" style="margin-top:14px;color:rgba(255,255,255,.30)">${DATA.verse.ref}</div>`;
+
+function build(){
+  const g=[]; g.push(`<div class="widget w-small">${wSessSmall()}</div>`);
+  g.push(`<div class="widget w-small">${wNewsSmall()}</div>`);
+  g.push(`<div class="widget w-med">${wSessMed()}</div>`);
+  g.push(`<div class="widget w-large">${wSessLarge()}</div>`);
+  g.push(`<div class="widget w-med">${wNewsMed()}</div>`);
+  if(S.rates) g.push(`<div class="widget w-med">${wRatesMed()}</div>`);
+  g.push(`<div class="widget w-large">${wNewsLarge()}</div>`);
+  if(S.verse) g.push(`<div class="widget w-large">${wVerseLarge()}</div>`);
+  document.getElementById("grid").innerHTML=g.join("");
+  const d=new Date(); document.querySelector(".sb-time").textContent=((d.getHours()%12)||12)+":"+String(d.getMinutes()).padStart(2,"0"); }
+
+/* ---------- apply controls ---------- */
+const stage=document.getElementById("stage"), wall=document.getElementById("wall");
+function applyConcept(){ const c=CONCEPTS[S.concept];
+  stage.dataset.surface=c.surface; stage.dataset.overlay=c.overlay||""; stage.dataset.glow=c.glow||"";
+  stage.dataset.hairline=c.hairline||""; stage.dataset.metal=c.metal||"";
+  const t=(c.tint?S.tint*c.tint:S.tint); stage.style.setProperty("--tint",t.toFixed(3)); }
+function applyAll(){ applyConcept();
+  stage.dataset.num=S.num;
+  stage.style.setProperty("--radius",S.radius+"px");
+  stage.style.setProperty("--blur",S.blur+"px");
+  stage.style.setProperty("--wt",S.wt);
+  stage.style.setProperty("--rp",S.dens==="compact"?"6px":"9px");
+  stage.style.setProperty("--gap",S.dens==="compact"?"14px":"18px");
+  stage.style.setProperty("--wacc",ACCENTS[S.accent]);
+  wall.dataset.wp=S.wp; build(); }
+
+/* ---------- bindings ---------- */
+function seg(id,key,fn){ const el=document.getElementById(id);
+  el.querySelectorAll("button").forEach(b=>{ const v=b.dataset.v; const on=String(S[key])===(v==="1"?"true":v==="0"?"false":v);
+    b.setAttribute("aria-pressed", on); b.onclick=()=>{ S[key]= (v==="1"?true:v==="0"?false:(isNaN(+v)||v===""?v:+v)); if(fn)fn(); applyAll(); }; }); }
+function segVal(id,key,map){ const el=document.getElementById(id);
+  el.querySelectorAll("button").forEach(b=>{ const v=b.dataset.v; const on=S[key]===map(v);
+    b.setAttribute("aria-pressed", on); b.onclick=()=>{ S[key]=map(v); applyAll(); }; }); }
+
+function init(){
+  const cc1=document.getElementById("cConcept");
+  Object.entries(CONCEPTS).forEach(([id,c])=>{ const b=document.createElement("button"); b.textContent=c.label; b.onclick=()=>{S.concept=id;[...cc1.children].forEach(x=>x.setAttribute("aria-pressed","false"));b.setAttribute("aria-pressed","true");applyAll();}; cc1.appendChild(b); });
+  const cw=document.getElementById("cWp"); WP.forEach(id=>{ const b=document.createElement("div"); b.className="wp"; b.dataset.wp=id; b.onclick=()=>{S.wp=id;[...cw.children].forEach(x=>x.setAttribute("aria-pressed","false"));b.setAttribute("aria-pressed","true");applyAll();}; cw.appendChild(b); });
+  const ca=document.getElementById("cAcc"); Object.entries(ACCENTS).forEach(([id,col])=>{ const b=document.createElement("div"); b.className="sw"+(id==="none"?" none":""); b.style.background=col; b.title=id; b.onclick=()=>{S.accent=id;[...ca.children].forEach(x=>x.setAttribute("aria-pressed","false"));b.setAttribute("aria-pressed","true");applyAll();}; ca.appendChild(b); });
+
+  segVal("cNum","num",v=>v); segVal("cDens","dens",v=>v); segVal("cProg","prog",v=>v);
+  seg("cSec","sec"); seg("cH","h24"); segVal("cSess","sess",v=>v); segVal("cNews","news",v=>v);
+  seg("cRates","rates"); seg("cVerse","verse");
+
+  const r=(id,key,vid,fmt)=>{ const el=document.getElementById(id), vv=document.getElementById(vid);
+    el.oninput=()=>{ S[key]= key==="tint"?(+el.value/100):+el.value; vv.textContent=fmt?fmt(el.value):el.value; applyAll(); }; };
+  r("rRadius","radius","vRadius"); r("rBlur","blur","vBlur"); r("rTint","tint","vTint",v=>(+v/100).toFixed(2)); r("rWt","wt","vWt");
+
+  document.getElementById("reset").onclick=()=>location.reload();
+  document.getElementById("copy").onclick=e=>{ navigator.clipboard.writeText(JSON.stringify(S,null,2)); e.target.textContent="Copied"; setTimeout(()=>e.target.textContent="Copy config",1200); };
+  // defaults
+  cc1.querySelector("button").setAttribute("aria-pressed","true");
+  cw.querySelector(`[data-wp="${S.wp}"]`).setAttribute("aria-pressed","true");
+  ca.querySelector(".sw").setAttribute("aria-pressed","true");
+  applyAll(); renderSrc(); loadLive();
+}
+
+function renderSrc(){ const t=DATA.srcTime?new Date(DATA.srcTime).toLocaleString([], {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"â€”";
+  const pill=(live)=>live?`<span class="pill live">live</span>`:`<span class="pill snap">snapshot</span>`;
+  document.getElementById("src").innerHTML=
+   `<b>Live sources</b><br>FX rates Â· open.er-api.com ${pill(DATA.liveRates)}<br>Verse Â· labs.bible.org ${pill(DATA.liveVerse)}<br>Calendar Â· Forex Factory ${pill(DATA.liveCal)}<br><span style="color:var(--dim2)">updated ${t}. Sessions use each market's local time (DST-aware). Calendar falls back to the bundled snapshot when the feed is rate-limited or blocks CORS.</span>`; }
+
+/* ---------- URL params (headless screenshot / deep links) ---------- */
+const Q=new URLSearchParams(location.search);
+if(Q.get("concept")&&CONCEPTS[Q.get("concept")]) S.concept=Q.get("concept");
+if(Q.get("wp")&&WP.includes(Q.get("wp"))) S.wp=Q.get("wp");
+if(Q.get("num")) S.num=Q.get("num");
+if(Q.get("prog")) S.prog=Q.get("prog");
+if(Q.get("sess")) S.sess=Q.get("sess");
+if(Q.get("news")) S.news=Q.get("news");
+if(Q.get("sec")) S.sec=Q.get("sec")==="1";
+if(Q.get("rates")) S.rates=Q.get("rates")==="1";
+if(Q.get("verse")) S.verse=Q.get("verse")==="1";
+if(Q.get("snap")==="1") document.body.classList.add("snap");
+
+init(); setInterval(build,1000);
+</script>
+</body>
+</html>
