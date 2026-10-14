@@ -1,6 +1,6 @@
 import Foundation
 
-// MARK: - Network feeds (run inside the widget extension; no CORS restrictions natively)
+// MARK: - Network feeds (shared by the app and the widget extension)
 
 struct FxEvent: Codable, Identifiable {
     let title: String
@@ -44,16 +44,20 @@ struct Verse {
 
 enum Feed {
 
+    private static let userAgent =
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+
     private static func get(_ urlString: String) async throws -> Data {
         guard let url = URL(string: urlString) else { throw URLError(.badURL) }
         var req = URLRequest(url: url)
         req.timeoutInterval = 12
-        req.setValue("CountdownStudio/1.0", forHTTPHeaderField: "User-Agent")
+        req.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        req.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
         let (data, _) = try await URLSession.shared.data(for: req)
         return data
     }
 
-    /// https://open.er-api.com  — USD base, CORS-friendly, free.
+    /// https://open.er-api.com  — USD base, free, no key.
     static func rates() async throws -> [String: Double] {
         struct Resp: Codable { let rates: [String: Double] }
         let data = try await get("https://open.er-api.com/v6/latest/USD")
@@ -72,7 +76,7 @@ enum Feed {
         return Verse(reference: "\(v.bookname) \(v.chapter):\(v.verse)", text: clean)
     }
 
-    /// Forex Factory weekly calendar. Fetched directly — works in a native app.
+    /// Forex Factory weekly economic calendar.
     static func calendar() async throws -> [FxEvent] {
         let data = try await get("https://nfs.faireconomy.media/ff_calendar_thisweek.json")
         return try JSONDecoder().decode([FxEvent].self, from: data)
